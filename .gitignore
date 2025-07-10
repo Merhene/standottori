@@ -1,0 +1,30 @@
+node_modules/
+.env*
+.DS_Store
+# Build outputs
+dist/
+build/
+.next/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDEs
+.vscode/
+.idea/
+
+# Strapi uploads
+/uploads/
+
+# Testing coverage
+coverage/
+
+# Parcel
+.parcel-cache/
+
+# Misc
+*.sqlite 
