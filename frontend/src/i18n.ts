@@ -23,6 +23,14 @@ const resources = {
         title: 'Standottori',
         carousel_coming_soon: 'Carrousel en construction...'
       },
+      carousel: {
+        label: 'Galerie de photos',
+        previous: 'Image précédente',
+        next: 'Image suivante',
+        goto_slide: 'Aller à l\'image {{number}}',
+        play: 'Démarrer le diaporama',
+        pause: 'Mettre en pause le diaporama'
+      },
       biography: {
         title: 'Biographie',
         coming_soon: 'Biographie en construction...',
@@ -78,6 +86,14 @@ const resources = {
       home: {
         title: 'Standottori',
         carousel_coming_soon: 'Carousel coming soon...'
+      },
+      carousel: {
+        label: 'Photo gallery',
+        previous: 'Previous image',
+        next: 'Next image',
+        goto_slide: 'Go to image {{number}}',
+        play: 'Start slideshow',
+        pause: 'Pause slideshow'
       },
       biography: {
         title: 'Biography',
