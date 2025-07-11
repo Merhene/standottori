@@ -1,35 +1,49 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import LockScreen from './features/lockscreen/LockScreen';
+import Layout from './components/layout/Layout';
+import Home from './pages/Home';
+import Biography from './pages/Biography';
+import Events from './pages/Events';
+import Gallery from './pages/Gallery';
+import Info from './pages/Info';
+import Contact from './pages/Contact';
+import YouTube from './pages/YouTube';
+import Legal from './pages/Legal';
+import Privacy from './pages/Privacy';
+
+const STORAGE_KEY = 'lockscreen-completed';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [unlocked, setUnlocked] = useState<boolean>(false);
+
+  useEffect(() => {
+    const done = localStorage.getItem(STORAGE_KEY) === '1';
+    setUnlocked(done);
+  }, []);
+
+  if (!unlocked) {
+    return <LockScreen onComplete={() => setUnlocked(true)} />;
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Home />} />
+          <Route path="biography" element={<Biography />} />
+          <Route path="events" element={<Events />} />
+          <Route path="gallery" element={<Gallery />} />
+          <Route path="info" element={<Info />} />
+          <Route path="contact" element={<Contact />} />
+          <Route path="youtube" element={<YouTube />} />
+          <Route path="legal" element={<Legal />} />
+          <Route path="privacy" element={<Privacy />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
