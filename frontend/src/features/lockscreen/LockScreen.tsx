@@ -22,6 +22,7 @@ export default function LockScreen({ onComplete }: { onComplete: () => void }) {
   const { t } = useTranslation();
   const [progress, setProgress] = useState<number>(0);
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // auto complete after 30 seconds
   useEffect(() => {
@@ -43,6 +44,13 @@ export default function LockScreen({ onComplete }: { onComplete: () => void }) {
     setProgress(index + 1);
   };
 
+  const handleKeyPress = (event: React.KeyboardEvent, index: number) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleDotClick(index);
+    }
+  };
+
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-[#171617] text-[#F4EDDE] select-none">
       <svg
@@ -52,23 +60,41 @@ export default function LockScreen({ onComplete }: { onComplete: () => void }) {
         stroke="#F4EDDE"
         strokeWidth={2}
         fill="none"
+        role="img"
+        aria-label={t('connect_dots')}
       >
         {/* draw lines */}
         <polyline
           points={DOTS.slice(0, progress + 1)
             .map((d) => `${d.x},${d.y}`)
             .join(' ')}
+          className={progress > 0 && !prefersReducedMotion ? 'animate-draw' : ''}
         />
-        {/* render dots */}
+        {/* render dots and numbers */}
         {DOTS.slice(0, 5).map((dot, idx) => (
-          <circle
-            key={dot.id}
-            cx={dot.x}
-            cy={dot.y}
-            r={3}
-            className="cursor-pointer"
-            onClick={() => handleDotClick(idx)}
-          />
+          <g key={dot.id}>
+            <circle
+              cx={dot.x}
+              cy={dot.y}
+              r={3}
+              className={`cursor-pointer ${idx === progress ? 'animate-pulse' : ''}`}
+              onClick={() => handleDotClick(idx)}
+              onKeyPress={(e) => handleKeyPress(e, idx)}
+              role="button"
+              aria-label={`Point ${dot.id}${idx === progress ? ' (next point to connect)' : ''}`}
+              tabIndex={0}
+            />
+            <text
+              x={dot.x}
+              y={dot.y}
+              dy="-8"
+              textAnchor="middle"
+              className="text-[6px] font-medium fill-current select-none pointer-events-none"
+              aria-hidden="true"
+            >
+              {dot.id}
+            </text>
+          </g>
         ))}
       </svg>
       <p className="mt-4 animate-pulse text-center uppercase tracking-wider">
