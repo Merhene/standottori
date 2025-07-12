@@ -1,0 +1,38 @@
+name: CI/CD
+
+on:
+  push:
+    branches: ["develop", "main"]
+  pull_request:
+    branches: ["develop"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install dependencies
+        run: |
+          npm install -g yarn
+          yarn install --frozen-lockfile
+      - name: Lint
+        run: yarn lint || true  # placeholder until lint script exists
+      - name: Test
+        run: yarn test || true  # placeholder until test script exists
+      - name: Build
+        run: yarn build || true # placeholder until build script exists
+      - name: Docker Build
+        run: |
+          docker build -t standottori:${{ github.sha }} .
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
+    steps:
+      - name: Deploy to Render (stub)
+        run: echo "Deploy step to Render or chosen host will be implemented here." 
