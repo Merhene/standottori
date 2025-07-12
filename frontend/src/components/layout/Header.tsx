@@ -7,6 +7,7 @@ import MobileMenu from '../MobileMenu';
 export default function Header() {
   const { t } = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   
   return (
     <header className="bg-[#F4EDDE] dark:bg-[#171617] shadow-sm">
@@ -16,6 +17,7 @@ export default function Header() {
             Standottori
           </Link>
           
+
           <div className="hidden md:flex items-center space-x-6">
             <NavLink 
               to="/biography" 

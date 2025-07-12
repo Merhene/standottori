@@ -5,6 +5,7 @@ const resources = {
   fr: {
     translation: {
       connect_dots: 'Reliez les points',
+
       theme: {
         toggle: 'Basculer le thème clair/sombre'
       },
@@ -68,6 +69,7 @@ const resources = {
       theme: {
         toggle: 'Toggle light/dark theme'
       },
+
       nav: {
         biography: 'Biography',
         events: 'Events',
@@ -77,6 +79,7 @@ const resources = {
         youtube: 'YouTube',
         menu: 'Menu',
         close: 'Close menu'
+
       },
       footer: {
         rights: 'All rights reserved.',
