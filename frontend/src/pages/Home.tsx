@@ -12,6 +12,8 @@ const carouselImages = [
 ];
 
 export default function Home() {
+  const { t } = useTranslation();
+
   return (
     <div className="text-center">
       <h1 className="text-4xl font-bold mb-8">{t('home.title')}</h1>
