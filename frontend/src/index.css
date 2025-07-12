@@ -2,16 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-@keyframes draw {
-  from {
-    stroke-dashoffset: 100;
-  }
-  to {
-    stroke-dashoffset: 0;
+@layer utilities {
+  .animate-draw {
+    animation: draw 0.5s ease-out forwards;
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
   }
 }
 
-.animate-draw {
-  stroke-dasharray: 100;
-  animation: draw 0.5s ease-in-out forwards;
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
 }

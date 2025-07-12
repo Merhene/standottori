@@ -5,6 +5,9 @@ const resources = {
   fr: {
     translation: {
       connect_dots: 'Reliez les points',
+      theme: {
+        toggle: 'Basculer le thème clair/sombre'
+      },
       nav: {
         biography: 'Biographie',
         events: 'Événements',
@@ -61,6 +64,9 @@ const resources = {
   en: {
     translation: {
       connect_dots: 'Connect the dots',
+      theme: {
+        toggle: 'Toggle light/dark theme'
+      },
       nav: {
         biography: 'Biography',
         events: 'Events',
