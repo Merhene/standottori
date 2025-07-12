@@ -1,16 +1,12 @@
 import { useTranslation } from 'react-i18next';
 
 export default function Home() {
-  const { t } = useTranslation();
-  
   return (
     <div className="text-center">
-      <h1 className="text-4xl font-bold mb-8">{t('home.title')}</h1>
-      <div className="aspect-[16/9] bg-[#171617]/5 dark:bg-[#EAE7D3]/5 rounded-lg">
-        {/* Carousel placeholder */}
-        <div className="h-full flex items-center justify-center">
-          <p className="text-lg">{t('home.carousel_coming_soon')}</p>
-        </div>
+      <h1 className="text-4xl font-bold mb-8">Welcome to Standottori</h1>
+      {/* Carousel will go here */}
+      <div className="h-96 bg-light-text/5 dark:bg-dark-text/5 rounded-lg flex items-center justify-center">
+        Carousel placeholder
       </div>
     </div>
   );
