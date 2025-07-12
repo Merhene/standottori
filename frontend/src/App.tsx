@@ -13,7 +13,6 @@ import Legal from './pages/Legal';
 import Privacy from './pages/Privacy';
 import { ThemeProvider } from './hooks/useTheme';
 
-
 const STORAGE_KEY = 'lockscreen-completed';
 
 function App() {
