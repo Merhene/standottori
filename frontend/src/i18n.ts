@@ -5,6 +5,10 @@ const resources = {
   fr: {
     translation: {
       connect_dots: 'Reliez les points',
+
+      theme: {
+        toggle: 'Basculer le thème clair/sombre'
+      },
       nav: {
         biography: 'Biographie',
         events: 'Événements',
@@ -12,7 +16,8 @@ const resources = {
         info: 'Info',
         contact: 'Contact',
         youtube: 'YouTube',
-        menu: 'Menu'
+        menu: 'Menu',
+        close: 'Fermer le menu'
       },
       footer: {
         rights: 'Tous droits réservés.',
@@ -22,14 +27,6 @@ const resources = {
       home: {
         title: 'Standottori',
         carousel_coming_soon: 'Carrousel en construction...'
-      },
-      carousel: {
-        label: 'Galerie de photos',
-        previous: 'Image précédente',
-        next: 'Image suivante',
-        goto_slide: 'Aller à l\'image {{number}}',
-        play: 'Démarrer le diaporama',
-        pause: 'Mettre en pause le diaporama'
       },
       biography: {
         title: 'Biographie',
@@ -69,6 +66,10 @@ const resources = {
   en: {
     translation: {
       connect_dots: 'Connect the dots',
+      theme: {
+        toggle: 'Toggle light/dark theme'
+      },
+
       nav: {
         biography: 'Biography',
         events: 'Events',
@@ -76,7 +77,9 @@ const resources = {
         info: 'Info',
         contact: 'Contact',
         youtube: 'YouTube',
-        menu: 'Menu'
+        menu: 'Menu',
+        close: 'Close menu'
+
       },
       footer: {
         rights: 'All rights reserved.',
@@ -86,14 +89,6 @@ const resources = {
       home: {
         title: 'Standottori',
         carousel_coming_soon: 'Carousel coming soon...'
-      },
-      carousel: {
-        label: 'Photo gallery',
-        previous: 'Previous image',
-        next: 'Next image',
-        goto_slide: 'Go to image {{number}}',
-        play: 'Start slideshow',
-        pause: 'Pause slideshow'
       },
       biography: {
         title: 'Biography',
