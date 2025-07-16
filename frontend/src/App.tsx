@@ -36,7 +36,7 @@ function App() {
   return (
     <ThemeProvider>
       {unlocked ? (
-        <div className="animate-zoom-fade-in">
+        <div className="animate-fade-zoom-out">
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Layout />}> 
