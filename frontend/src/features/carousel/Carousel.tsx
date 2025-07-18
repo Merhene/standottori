@@ -92,8 +92,9 @@ export default function Carousel({ images, autoPlayInterval = 5000, className = 
     >
       {/* Images */}
       <div 
-        className="flex transition-transform duration-500 ease-out h-full"
+        className="flex transition-transform duration-500 ease-out h-full cursor-pointer"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+        onClick={nextSlide}
       >
         {images.map((image, index) => (
           <div
@@ -110,26 +111,6 @@ export default function Carousel({ images, autoPlayInterval = 5000, className = 
           </div>
         ))}
       </div>
-
-      {/* Navigation buttons */}
-      <button
-        onClick={previousSlide}
-        className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/30 text-white hover:bg-black/50 focus:outline-none focus:ring-2 focus:ring-white/50"
-        aria-label={t('carousel.previous')}
-      >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
-      <button
-        onClick={nextSlide}
-        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/30 text-white hover:bg-black/50 focus:outline-none focus:ring-2 focus:ring-white/50"
-        aria-label={t('carousel.next')}
-      >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
 
       {/* Dots indicator */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">

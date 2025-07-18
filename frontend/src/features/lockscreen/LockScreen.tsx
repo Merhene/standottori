@@ -209,14 +209,14 @@ export default function LockScreen({ onComplete }: { onComplete: () => void }) {
       <div className="absolute top-1/2 left-1/2 w-[300px] h-[300px] -translate-x-1/2 -translate-y-1/2 bg-[radial-gradient(circle,rgba(100,100,100,0.15)_0%,transparent_70%)] rounded-full blur-2xl z-0"></div>
 
       <main
-        className={`relative flex flex-col items-center px-6 py-8 z-10 transition-all duration-500
-          ${isAnimating ? 'fixed inset-0 w-screen h-screen max-w-none' : 'w-full max-w-[400px] sm:max-w-[480px] md:max-w-[600px]'}`}
+        className={`relative flex flex-col items-center px-4 py-0 z-10 transition-all duration-500
+          ${isAnimating ? 'fixed inset-0 w-screen h-screen max-w-none' : 'w-full max-w-[500px]'}`}
       >
         {/* Overlay to darken background during unlock animation */}
         <div className={`absolute inset-0 bg-black pointer-events-none transition-opacity duration-500 ${isAnimating ? 'opacity-100' : 'opacity-0'} z-0`} />
 
         <div
-          className={`${isAnimating ? 'fixed inset-0 w-screen h-screen' : 'w-full aspect-[1/1.618]'}
+          className={`${isAnimating ? 'fixed inset-0 w-screen h-screen' : 'w-1/2 aspect-square max-w-[350px]'}
             relative flex items-center justify-center z-10 overflow-visible`}
         >
           <svg
@@ -229,7 +229,7 @@ export default function LockScreen({ onComplete }: { onComplete: () => void }) {
             }}
             ref={svgRef}
             viewBox="0 0 100 100"
-            className="w-full h-full"
+            className="w-3/4 h-full"
             stroke={strokeCol}
             strokeWidth={0.2}
             fill="none"
