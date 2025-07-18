@@ -6,104 +6,73 @@ import MobileMenu from '../MobileMenu';
 
 export default function Header() {
   const { t, i18n } = useTranslation();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const toggleLanguage = () => {
-    const newLang = i18n.language === 'fr' ? 'en' : 'fr';
-    i18n.changeLanguage(newLang);
+  const toggleLang = () => {
+    i18n.changeLanguage(i18n.language === 'fr' ? 'en' : 'fr');
   };
-  
+
+  const navLinks = [
+    { to: '/biography', label: t('nav.biography') },
+    { to: '/events', label: t('nav.events') },
+    { to: '/gallery', label: t('nav.gallery') },
+    { to: '/info', label: t('nav.info') },
+    { to: '/contact', label: t('nav.contact') },
+    { to: '/youtube', label: t('nav.youtube') },
+  ];
+
   return (
-    <header className="bg-[#F4EDDE] dark:bg-[#171617] shadow-sm">
-      <nav className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          <Link to="/" className="text-2xl font-bold">
-            Standottori
-          </Link>
-          
-          <div className="hidden md:flex items-center space-x-6">
-            <NavLink 
-              to="/biography" 
-              className={({ isActive }) => 
-                `hover:opacity-75 transition-opacity ${isActive ? 'font-medium' : ''}`
-              }
-            >
-              {t('nav.biography')}
-            </NavLink>
-            <NavLink 
-              to="/events" 
-              className={({ isActive }) => 
-                `hover:opacity-75 transition-opacity ${isActive ? 'font-medium' : ''}`
-              }
-            >
-              {t('nav.events')}
-            </NavLink>
-            <NavLink 
-              to="/gallery" 
-              className={({ isActive }) => 
-                `hover:opacity-75 transition-opacity ${isActive ? 'font-medium' : ''}`
-              }
-            >
-              {t('nav.gallery')}
-            </NavLink>
-            <NavLink 
-              to="/info" 
-              className={({ isActive }) => 
-                `hover:opacity-75 transition-opacity ${isActive ? 'font-medium' : ''}`
-              }
-            >
-              {t('nav.info')}
-            </NavLink>
-            <NavLink 
-              to="/contact" 
-              className={({ isActive }) => 
-                `hover:opacity-75 transition-opacity ${isActive ? 'font-medium' : ''}`
-              }
-            >
-              {t('nav.contact')}
-            </NavLink>
-            <NavLink 
-              to="/youtube" 
-              className={({ isActive }) => 
-                `hover:opacity-75 transition-opacity ${isActive ? 'font-medium' : ''}`
-              }
-            >
-              {t('nav.youtube')}
-            </NavLink>
-            <button
-              onClick={toggleLanguage}
-              className="hover:opacity-75 transition-opacity font-medium"
-            >
+    <header className="sticky top-0 z-50 w-full backdrop-blur-sm bg-light-bg/80 dark:bg-dark-bg/80 border-b border-light-text/10 dark:border-dark-text/10">
+      <nav className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        {/* Brand */}
+        <Link to="/" className="flex items-center gap-2">
+          <img src="/images/logo.png" alt="Standottori logo" className="h-8 w-1/20" />
+          <span className="font-bold text-lg tracking-wide text-light-text dark:text-dark-text">Standottori</span>
+        </Link>
+
+        {/* Desktop nav */}
+        <ul className="hidden md:flex items-center gap-8 text-sm font-medium">
+          {navLinks.map(({ to, label }) => (
+            <li key={to}>
+              <NavLink
+                to={to}
+                className={({ isActive }) =>
+                  `${isActive ? 'underline underline-offset-4 font-semibold' : ''} hover:opacity-80 transition-opacity`}
+              >
+                {label}
+              </NavLink>
+            </li>
+          ))}
+          <li>
+            <button onClick={toggleLang} className="hover:opacity-80 transition-opacity uppercase">
               {i18n.language === 'fr' ? 'EN' : 'FR'}
             </button>
+          </li>
+          <li>
             <ThemeToggle />
-          </div>
-          
-          <div className="md:hidden flex items-center space-x-4">
-            <button
-              onClick={toggleLanguage}
-              className="hover:opacity-75 transition-opacity font-medium"
-            >
-              {i18n.language === 'fr' ? 'EN' : 'FR'}
-            </button>
-            <ThemeToggle />
-            <button 
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="p-2 hover:bg-[#171617]/5 dark:hover:bg-[#EAE7D3]/5 rounded-lg transition-colors"
-            >
-              <span className="sr-only">{t('nav.menu')}</span>
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </div>
+          </li>
+        </ul>
+
+        {/* Mobile icons */}
+        <div className="md:hidden flex items-center gap-3">
+          <button onClick={toggleLang} className="hover:opacity-80 transition-opacity uppercase text-sm font-medium">
+            {i18n.language === 'fr' ? 'EN' : 'FR'}
+          </button>
+          <ThemeToggle />
+          <button
+            onClick={() => setMenuOpen(true)}
+            className="inline-flex items-center justify-center rounded-md p-2 hover:bg-black/5 dark:hover:bg-white/5 transition-colors focus:outline-none"
+            aria-label={t('nav.menu')}
+          >
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
         </div>
       </nav>
 
-      <MobileMenu 
-        isOpen={isMobileMenuOpen} 
-        onClose={() => setIsMobileMenuOpen(false)} 
-      />
+      {/* Slide-over mobile menu */}
+      <MobileMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
     </header>
   );
 } 
