@@ -26,7 +26,7 @@ export default function Header() {
       <nav className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand */}
         <Link to="/" className="flex items-center gap-2">
-          <img src="/images/logo.png" alt="Standottori logo" className="h-8 w-1/20" />
+          <img src="/images/blacklogo.png" alt="Standottori logo" className="h-8 w-1/20" />
           <span className="font-bold text-lg tracking-wide text-light-text dark:text-dark-text">Standottori</span>
         </Link>
 

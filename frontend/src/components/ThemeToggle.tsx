@@ -9,7 +9,8 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-full hover:bg-[#171617]/5 dark:hover:bg-[#EAE7D3]/5 transition-colors"
+      className="p-link flex align-items-center justify-content-center border-circle hover:bg-surface-200 transition-colors"
+      style={{ width: '2.25rem', height: '2.25rem' }}
       aria-label={t('theme.toggle')}
     >
       {theme === 'dark' ? (

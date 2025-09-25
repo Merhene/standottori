@@ -30,7 +30,8 @@ const ENABLE_AUTO_UNLOCK_TIMER = false;
 //  Customisation knobs
 // -----------------------
 const SHOW_NUMBERS = true; // set to false for a cleaner look
-const DOT_RADIUS = 1; // svg units (out of 100) – smaller dot size
+const getDotRadius = () => window.innerWidth < 640 ? 1.2 : window.innerWidth < 1024 ? 1.1 : 1;
+const getStrokeWidth = () => window.innerWidth < 640 ? 0.3 : window.innerWidth < 1024 ? 0.25 : 0.2;
 const GLOW_STD_DEVIATION = 2; // blur spread for neon effect
 
 export default function LockScreen({ onComplete }: { onComplete: () => void }) {
@@ -89,9 +90,10 @@ export default function LockScreen({ onComplete }: { onComplete: () => void }) {
 
   const hitTestDot = useCallback((pos: { x: number; y: number }): number | null => {
     // Return index of hit dot (0-5) or null
-    const HIT_RADIUS = 6; // in svg units (percent)
+    // Make hit radius responsive - larger on desktop, smaller on mobile
+    const baseRadius = window.innerWidth < 640 ? 8 : window.innerWidth < 1024 ? 7 : 6;
     for (let i = 0; i < 6; i++) {
-      if (distance(pos, { x: DOTS[i].x, y: DOTS[i].y }) < HIT_RADIUS) return i;
+      if (distance(pos, { x: DOTS[i].x, y: DOTS[i].y }) < baseRadius) return i;
     }
     return null;
   }, []);
@@ -205,18 +207,18 @@ export default function LockScreen({ onComplete }: { onComplete: () => void }) {
       >
         {theme === 'light' ? '🌙' : '☀️'}
       </button> */}
-      {/* Effet lumineux radial */}
-      <div className="absolute top-1/2 left-1/2 w-[300px] h-[300px] -translate-x-1/2 -translate-y-1/2 bg-[radial-gradient(circle,rgba(100,100,100,0.15)_0%,transparent_70%)] rounded-full blur-2xl z-0"></div>
+      {/* Responsive radial light effect */}
+      <div className="absolute top-1/2 left-1/2 w-[200px] h-[200px] sm:w-[300px] sm:h-[300px] md:w-[400px] md:h-[400px] lg:w-[500px] lg:h-[500px] -translate-x-1/2 -translate-y-1/2 bg-[radial-gradient(circle,rgba(100,100,100,0.15)_0%,transparent_70%)] rounded-full blur-2xl z-0"></div>
 
       <main
         className={`relative flex flex-col items-center px-4 py-0 z-10 transition-all duration-500
-          ${isAnimating ? 'fixed inset-0 w-screen h-screen max-w-none' : 'w-full max-w-[500px]'}`}
+          ${isAnimating ? 'fixed inset-0 w-screen h-screen max-w-none' : 'w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-4xl'}`}
       >
         {/* Overlay to darken background during unlock animation */}
         <div className={`absolute inset-0 bg-black pointer-events-none transition-opacity duration-500 ${isAnimating ? 'opacity-100' : 'opacity-0'} z-0`} />
 
         <div
-          className={`${isAnimating ? 'fixed inset-0 w-screen h-screen' : 'w-1/2 aspect-square max-w-[350px]'}
+          className={`${isAnimating ? 'fixed inset-0 w-screen h-screen' : 'w-full aspect-square max-w-[280px] sm:max-w-[350px] md:max-w-[450px] lg:max-w-[550px] xl:max-w-[650px]'}
             relative flex items-center justify-center z-10 overflow-visible`}
         >
           <svg
@@ -229,9 +231,9 @@ export default function LockScreen({ onComplete }: { onComplete: () => void }) {
             }}
             ref={svgRef}
             viewBox="0 0 100 100"
-            className="w-3/4 h-full"
+            className="w-full h-full"
             stroke={strokeCol}
-            strokeWidth={0.2}
+            strokeWidth={getStrokeWidth()}
             fill="none"
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
@@ -253,7 +255,7 @@ export default function LockScreen({ onComplete }: { onComplete: () => void }) {
             <path
               d={`M ${DOTS.map((d) => `${d.x},${d.y}`).join(' L ')}`}
               className="opacity-5"
-              strokeWidth={0.2}
+              strokeWidth={getStrokeWidth()}
             />
 
             {/* Draw lines for visited points */}
@@ -285,8 +287,8 @@ export default function LockScreen({ onComplete }: { onComplete: () => void }) {
                 <circle
                   cx={dot.x}
                   cy={dot.y}
-                  r={DOT_RADIUS}
-                  style={{ fill: idx <= selected.length ? strokeCol : 'transparent', stroke: strokeCol, strokeWidth: 0.1 }}
+                  r={getDotRadius()}
+                  style={{ fill: idx <= selected.length ? strokeCol : 'transparent', stroke: strokeCol, strokeWidth: getStrokeWidth() * 0.5 }}
                   className="cursor-pointer transition-opacity hover:opacity-75"
                   onPointerDown={(e) => startDrag(idx, e)}
                   onClick={() => handleDotClick(idx)}
@@ -302,7 +304,7 @@ export default function LockScreen({ onComplete }: { onComplete: () => void }) {
                     y={dot.y}
                     dy="-8"
                     textAnchor="middle"
-                    className="text-[6px] font-light fill-current select-none pointer-events-none"
+                    className="text-[5px] sm:text-[6px] md:text-[7px] font-light fill-current select-none pointer-events-none"
                     aria-hidden="true"
                   >
                     {dot.id}
@@ -313,7 +315,7 @@ export default function LockScreen({ onComplete }: { onComplete: () => void }) {
           </svg>
         </div>
 
-        <p className="mt-8 text-center uppercase tracking-[0.25em] font-light text-base text-[#aaa] animate-fade-in">
+        <p className="mt-4 sm:mt-6 md:mt-8 text-center uppercase tracking-[0.2em] sm:tracking-[0.25em] font-light text-sm sm:text-base md:text-lg text-[#aaa] animate-fade-in">
           {t('connect_dots')}
         </p>
       </main>
