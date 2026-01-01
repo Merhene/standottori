@@ -112,3 +112,18 @@
 
 .light .mobile-header { background:#ffffff; }
 .dark .mobile-header { background:#000000; }
+
+/* Remove background from p-link buttons in header */
+.p-link {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove background from nav buttons */
+.nav-link-clean {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  cursor: pointer;
+}

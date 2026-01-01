@@ -10,9 +10,10 @@ interface CarouselProps {
   images: CarouselImage[];
   autoPlayInterval?: number;
   className?: string;
+  isFullscreen?: boolean;
 }
 
-export default function Carousel({ images, autoPlayInterval = 5000, className = '' }: CarouselProps) {
+export default function Carousel({ images, autoPlayInterval = 5000, className = '', isFullscreen = false }: CarouselProps) {
   const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -77,10 +78,14 @@ export default function Carousel({ images, autoPlayInterval = 5000, className = 
     }
   };
 
+  const fullscreenClasses = isFullscreen 
+    ? 'fixed inset-0 w-screen h-screen z-0' 
+    : 'relative rounded-lg';
+
   return (
     <div
       ref={containerRef}
-      className={`relative overflow-hidden rounded-lg ${className}`}
+      className={`overflow-hidden ${fullscreenClasses} ${className}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onTouchStart={handleTouchStart}

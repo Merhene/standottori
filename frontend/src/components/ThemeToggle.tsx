@@ -1,16 +1,23 @@
-import React from 'react';
 import { useTheme } from '../hooks/useTheme';
 import { useTranslation } from 'react-i18next';
 
-export default function ThemeToggle() {
+interface ThemeToggleProps {
+  transparent?: boolean;
+}
+
+export default function ThemeToggle({ transparent = false }: ThemeToggleProps) {
   const { theme, toggleTheme } = useTheme();
   const { t } = useTranslation();
+  
+  const colorClass = transparent 
+    ? 'text-white drop-shadow-lg' 
+    : '';
   
   return (
     <button
       onClick={toggleTheme}
-      className="p-link flex align-items-center justify-content-center border-circle hover:bg-surface-200 transition-colors"
-      style={{ width: '2.25rem', height: '2.25rem' }}
+      className={`flex align-items-center justify-content-center hover:opacity-70 transition-opacity ${colorClass}`}
+      style={{ width: '1.25rem', height: '1.25rem', background: 'transparent', border: 'none', cursor: 'pointer' }}
       aria-label={t('theme.toggle')}
     >
       {theme === 'dark' ? (
@@ -34,4 +41,4 @@ export default function ThemeToggle() {
       )}
     </button>
   );
-} 
+}
