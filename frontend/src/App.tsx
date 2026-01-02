@@ -12,6 +12,16 @@ import YouTube from './pages/YouTube';
 import Legal from './pages/Legal';
 import Privacy from './pages/Privacy';
 import Creation from './pages/Creation';
+import Admin from './pages/Admin';
+import AdminEvents from './pages/admin/AdminEvents';
+import AdminGallery from './pages/admin/AdminGallery';
+import AdminBiography from './pages/admin/AdminBiography';
+import AdminInfo from './pages/admin/AdminInfo';
+import AdminMessages from './pages/admin/AdminMessages';
+import AdminSettings from './pages/admin/AdminSettings';
+import AdminGalleryTattoo from './pages/admin/gallery/AdminGalleryTattoo';
+import AdminGalleryFlash from './pages/admin/gallery/AdminGalleryFlash';
+import AdminGalleryWallpaper from './pages/admin/gallery/AdminGalleryWallpaper';
 import { ThemeProvider } from './hooks/useTheme';
 
 const STORAGE_KEY = 'lockscreen-completed';
@@ -51,6 +61,16 @@ function App() {
                 <Route path="legal" element={<Legal />} />
                 <Route path="privacy" element={<Privacy />} />
                 <Route path="creation" element={<Creation />} />
+                <Route path="admin" element={<Admin />} />
+                <Route path="admin/evenements" element={<AdminEvents />} />
+                <Route path="admin/galerie" element={<AdminGallery />} />
+                <Route path="admin/galerie/tattoo" element={<AdminGalleryTattoo />} />
+                <Route path="admin/galerie/flash" element={<AdminGalleryFlash />} />
+                <Route path="admin/galerie/wallpaper" element={<AdminGalleryWallpaper />} />
+                <Route path="admin/biographie" element={<AdminBiography />} />
+                <Route path="admin/informations" element={<AdminInfo />} />
+                <Route path="admin/messages" element={<AdminMessages />} />
+                <Route path="admin/parametres" element={<AdminSettings />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Route>
             </Routes>
