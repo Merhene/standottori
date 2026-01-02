@@ -5,6 +5,17 @@ const resources = {
   fr: {
     translation: {
       connect_dots: 'Reliez les points',
+      theme: {
+        toggle: 'Basculer le thème clair/sombre'
+      },
+      carousel: {
+        label: 'Galerie de photos',
+        previous: 'Image précédente',
+        next: 'Image suivante',
+        goto_slide: 'Aller à l\'image {{number}}',
+        play: 'Démarrer le diaporama',
+        pause: 'Mettre en pause le diaporama'
+      },
       nav: {
         biography: 'Biographie',
         events: 'Événements',
@@ -61,6 +72,17 @@ const resources = {
   en: {
     translation: {
       connect_dots: 'Connect the dots',
+      theme: {
+        toggle: 'Toggle light/dark theme'
+      },
+      carousel: {
+        label: 'Photo gallery',
+        previous: 'Previous image',
+        next: 'Next image',
+        goto_slide: 'Go to image {{number}}',
+        play: 'Start slideshow',
+        pause: 'Pause slideshow'
+      },
       nav: {
         biography: 'Biography',
         events: 'Events',
@@ -116,12 +138,15 @@ const resources = {
   }
 };
 
-i18n.use(initReactI18next).init({
-  resources,
-  fallbackLng: 'en',
-  interpolation: {
-    escapeValue: false
-  }
-});
+i18n
+  .use(initReactI18next)
+  .init({
+    resources,
+    lng: 'fr',
+    fallbackLng: 'en',
+    interpolation: {
+      escapeValue: false
+    }
+  });
 
 export default i18n; 
