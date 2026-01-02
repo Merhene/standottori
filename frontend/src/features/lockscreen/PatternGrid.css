@@ -1,0 +1,240 @@
+/* PatternGrid.css - Styling for the graphical unlock screen pattern grid */
+
+.full-screen {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Fallback if PrimeFlex doesn't load */
+}
+
+.pattern-container {
+  position: relative;
+  /* Responsive sizing based on viewport */
+  width: clamp(250px, 70vw, 500px);
+  height: clamp(250px, 70vh, 500px);
+  /* Keep the smaller dimension to maintain square */
+  width: min(clamp(250px, 70vw, 500px), clamp(250px, 70vh, 500px));
+  height: min(clamp(250px, 70vw, 500px), clamp(250px, 70vh, 500px));
+  /* Ensure no overflow on any screen size */
+  max-width: 90vw;
+  max-height: 90vh;
+  /* Debug border to see container */
+  border: 2px solid rgba(255, 0, 0, 0.2);
+}
+
+.pattern-point {
+  position: absolute;
+  /* Responsive point size */
+  width: clamp(16px, 4vw, 24px);
+  height: clamp(16px, 4vw, 24px);
+  background-color: #ff0000;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  /* Smooth transitions for future interactions */
+  transition: all 0.2s ease;
+  /* Make sure points are visible */
+  z-index: 10;
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+  .pattern-container {
+    width: clamp(200px, 80vw, 350px);
+    height: clamp(200px, 80vw, 350px);
+  }
+  
+  .pattern-point {
+    width: clamp(14px, 5vw, 20px);
+    height: clamp(14px, 5vw, 20px);
+  }
+}
+
+/* Large screen adjustments */
+@media (min-width: 1200px) {
+  .pattern-container {
+    width: clamp(400px, 50vw, 600px);
+    height: clamp(400px, 50vw, 600px);
+  }
+  
+  .pattern-point {
+    width: clamp(20px, 3vw, 28px);
+    height: clamp(20px, 3vw, 28px);
+  }
+}
+
+/* SVG overlay for drawing lines */
+.drawing-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.drawn-line {
+  stroke: #000;
+  stroke-width: 0.8;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.preview-line {
+  stroke: rgba(0, 0, 0, 0.4);
+  stroke-width: 0.6;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 2 2;
+}
+
+/* Container validation states */
+.pattern-container.success {
+  border-color: #00ff00;
+  box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+}
+
+.pattern-container.error {
+  border-color: #ff0000;
+  box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+}
+
+/* Shake animation for errors */
+.pattern-container.shake {
+  animation: shake 0.6s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* Point states */
+.pattern-point {
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.pattern-point.selected {
+  background-color: #00ff00;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+.pattern-point.can-close {
+  background-color: #ffaa00;
+  box-shadow: 0 0 10px rgba(255, 170, 0, 0.7);
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.2); }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+/* Reset button */
+.reset-button {
+  position: absolute;
+  bottom: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 16px;
+  background-color: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  z-index: 20;
+}
+
+.reset-button:hover:not(:disabled) {
+  background-color: #ff6666;
+  transform: translateX(-50%) scale(1.05);
+}
+
+.reset-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* Error message */
+.error-message {
+  position: absolute;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 14px;
+  color: #ff0000;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #ff0000;
+  white-space: nowrap;
+  z-index: 25;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Debug info */
+.debug-info {
+  position: absolute;
+  bottom: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: #666;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  z-index: 20;
+}
+
+.validation-status.success {
+  color: #00aa00;
+  font-weight: bold;
+}
+
+.validation-status.error {
+  color: #aa0000;
+  font-weight: bold;
+}
+
+/* Individual point positioning - now handled by inline styles in React */
+.pattern-point--a {
+  /* Position handled by React inline styles */
+}
+
+.pattern-point--b {
+  /* Position handled by React inline styles */
+}
+
+.pattern-point--c {
+  /* Position handled by React inline styles */
+}
+
+.pattern-point--d {
+  /* Position handled by React inline styles */
+}
+
+.pattern-point--e {
+  /* Position handled by React inline styles */
+}
+
+.pattern-point--f {
+  /* Position handled by React inline styles */
+}
