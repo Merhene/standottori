@@ -5,12 +5,14 @@ import PrimeHeader from './PrimeHeader';
 export default function Layout() {
   const location = useLocation();
   const isHomePage = location.pathname === '/';
+  const isGalleryPage = location.pathname === '/gallery';
+  const isFullscreenPage = isHomePage || isGalleryPage;
 
-  // Homepage: carousel en fond, header transparent par-dessus
-  if (isHomePage) {
+  // Fullscreen pages: header transparent par-dessus le contenu
+  if (isFullscreenPage) {
     return (
       <div className="relative min-h-screen">
-        {/* Carousel en fond (rendu par Home.tsx) */}
+        {/* Contenu en fond (rendu par la page) */}
         <Outlet />
         
         {/* Header flottant par-dessus */}

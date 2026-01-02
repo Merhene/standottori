@@ -22,6 +22,8 @@ import AdminSettings from './pages/admin/AdminSettings';
 import AdminGalleryTattoo from './pages/admin/gallery/AdminGalleryTattoo';
 import AdminGalleryFlash from './pages/admin/gallery/AdminGalleryFlash';
 import AdminGalleryWallpaper from './pages/admin/gallery/AdminGalleryWallpaper';
+import GalleryBook from './pages/gallery/GalleryBook';
+import GalleryFlash from './pages/gallery/GalleryFlash';
 import { ThemeProvider } from './hooks/useTheme';
 
 const STORAGE_KEY = 'lockscreen-completed';
@@ -55,6 +57,8 @@ function App() {
                 <Route path="biography" element={<Biography />} />
                 <Route path="events" element={<Events />} />
                 <Route path="gallery" element={<Gallery />} />
+                <Route path="gallery/book" element={<GalleryBook />} />
+                <Route path="gallery/flash" element={<GalleryFlash />} />
                 <Route path="info" element={<Info />} />
                 <Route path="contact" element={<Contact />} />
                 <Route path="youtube" element={<YouTube />} />
