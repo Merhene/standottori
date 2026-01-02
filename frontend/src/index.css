@@ -127,3 +127,55 @@
   box-shadow: none;
   cursor: pointer;
 }
+
+/* Admin button style */
+.admin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none !important;
+  transition: opacity 0.2s ease;
+}
+
+.admin-btn:hover {
+  opacity: 0.85;
+}
+
+.admin-btn:visited {
+  text-decoration: none !important;
+}
+
+.light .admin-btn {
+  background-color: #171617;
+  color: #f5f1e8 !important;
+}
+
+.dark .admin-btn {
+  background-color: #f5f1e8;
+  color: #171617 !important;
+}
+
+/* Admin breadcrumb link style */
+.admin-breadcrumb-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  text-decoration: none !important;
+  transition: opacity 0.2s ease;
+}
+
+.admin-breadcrumb-link:hover {
+  opacity: 0.7;
+}
+
+.light .admin-breadcrumb-link {
+  color: #171617 !important;
+}
+
+.dark .admin-breadcrumb-link {
+  color: #f5f1e8 !important;
+}
