@@ -6,19 +6,22 @@ export default function Layout() {
   const location = useLocation();
   const isHomePage = location.pathname === '/';
   const isGalleryPage = location.pathname === '/gallery';
-  const isFullscreenPage = isHomePage || isGalleryPage;
+  const isGalleryBookPage = location.pathname === '/gallery/book';
+  const isGalleryFlashPage = location.pathname === '/gallery/flash';
+  const isFullscreenPage = isHomePage || isGalleryPage || isGalleryBookPage || isGalleryFlashPage;
+  const isStickyHeaderPage = isGalleryBookPage || isGalleryFlashPage;
 
   // Fullscreen pages: header transparent par-dessus le contenu
   if (isFullscreenPage) {
     return (
       <div className="relative min-h-screen">
-        {/* Contenu en fond (rendu par la page) */}
-        <Outlet />
-        
-        {/* Header flottant par-dessus */}
-        <div className="fixed top-0 left-0 right-0 z-10">
+        {/* Header - sticky pour book/flash, fixed pour les autres */}
+        <div className={`${isStickyHeaderPage ? 'sticky' : 'fixed'} top-0 left-0 right-0 z-10`}>
           <PrimeHeader transparent />
         </div>
+
+        {/* Contenu en fond (rendu par la page) */}
+        <Outlet />
       </div>
     );
   }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import ThemeToggle from '../ThemeToggle';
@@ -6,13 +6,38 @@ import { useTheme } from '../../hooks/useTheme';
 
 interface PrimeHeaderProps {
   transparent?: boolean;
+  hideOnScroll?: boolean;
 }
 
-export default function PrimeHeader({ transparent = false }: PrimeHeaderProps) {
+export default function PrimeHeader({ transparent = false, hideOnScroll = false }: PrimeHeaderProps) {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  // Hide on scroll down, show on scroll up
+  useEffect(() => {
+    if (!hideOnScroll) return;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        // Scrolling down & past threshold
+        setIsHeaderVisible(false);
+      } else {
+        // Scrolling up
+        setIsHeaderVisible(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hideOnScroll, lastScrollY]);
 
   const changeLang = () => i18n.changeLanguage(i18n.language === 'fr' ? 'en' : 'fr');
 
@@ -63,12 +88,20 @@ export default function PrimeHeader({ transparent = false }: PrimeHeaderProps) {
     return theme === 'dark' ? '#000000' : '#ffffff';
   };
 
+  // Style de transformation pour hide on scroll
+  const headerTransformStyle = hideOnScroll
+    ? {
+        transform: isHeaderVisible ? 'translateY(0)' : 'translateY(-100%)',
+        transition: 'transform 0.3s ease-out',
+      }
+    : {};
+
   return (
     <>
       {/* Desktop Header */}
       <header 
         className={`hidden lg:block sticky top-0 z-5 ${transparent ? '' : 'shadow-1'} transition-colors duration-300`}
-        style={{ backgroundColor: getDesktopBgColor() }}
+        style={{ backgroundColor: getDesktopBgColor(), ...headerTransformStyle }}
       >
         {/* Main header bar */}
         <div className="flex align-items-center justify-content-between px-4 py-3">
@@ -180,7 +213,7 @@ export default function PrimeHeader({ transparent = false }: PrimeHeaderProps) {
       {/* Mobile/Tablet header */}
       <header 
         className={`lg:hidden sticky top-0 z-5 ${shadowClass} transition-colors duration-300`}
-        style={{ backgroundColor: getMobileBgColor() }}
+        style={{ backgroundColor: getMobileBgColor(), ...headerTransformStyle }}
       >
         <div className="flex align-items-center justify-content-between px-3 py-2">
           {/* Left: Logo + Burger */}
