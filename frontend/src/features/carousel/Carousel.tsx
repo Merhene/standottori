@@ -16,7 +16,10 @@ interface CarouselProps {
 export default function Carousel({ images, autoPlayInterval = 5000, className = '', isFullscreen = false }: CarouselProps) {
   const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
+  // Respect reduced-motion preferences: no autoplay
+  const [isPlaying, setIsPlaying] = useState(
+    () => !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
   const touchStartX = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -71,7 +74,7 @@ export default function Carousel({ images, autoPlayInterval = 5000, className = 
         e.preventDefault();
         nextSlide();
         break;
-      case 'Space':
+      case ' ':
         e.preventDefault();
         setIsPlaying(!isPlaying);
         break;

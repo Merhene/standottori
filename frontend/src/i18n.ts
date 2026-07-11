@@ -5,6 +5,11 @@ const resources = {
   fr: {
     translation: {
       connect_dots: 'Reliez les points',
+      lockscreen: {
+        reset: 'Recommencer',
+        error: 'Motif incorrect. Réessayez.',
+        skip: 'Entrer sans le motif'
+      },
       theme: {
         toggle: 'Basculer le thème clair/sombre'
       },
@@ -23,7 +28,9 @@ const resources = {
         info: 'Info',
         contact: 'Contact',
         youtube: 'YouTube',
-        menu: 'Menu'
+        menu: 'Menu',
+        open_menu: 'Ouvrir le menu',
+        close_menu: 'Fermer le menu'
       },
       footer: {
         rights: 'Tous droits réservés.',
@@ -41,7 +48,9 @@ const resources = {
       },
       events: {
         title: 'Événements',
-        coming_soon: 'Calendrier en construction...'
+        coming_soon: 'Calendrier en construction...',
+        upcoming: 'À venir',
+        past: 'Événements passés'
       },
       gallery: {
         title: 'Galerie',
@@ -49,15 +58,26 @@ const resources = {
       },
       info: {
         title: 'Informations',
-        coming_soon: 'Informations en construction...'
+        coming_soon: 'Informations en construction...',
+        contact_heading: 'Contact',
+        hours_heading: 'Horaires d\'ouverture',
+        socials_heading: 'Réseaux sociaux'
       },
       contact: {
         title: 'Contact',
-        coming_soon: 'Formulaire en construction...'
+        coming_soon: 'Formulaire en construction...',
+        name: 'Nom',
+        email: 'Email',
+        message: 'Message',
+        send: 'Envoyer',
+        sending: 'Envoi en cours…',
+        sent: 'Merci ! Votre message a bien été envoyé.',
+        error: 'L\'envoi a échoué. Veuillez réessayer plus tard.'
       },
       youtube: {
         title: 'YouTube',
-        coming_soon: 'Chaîne YouTube en construction...'
+        coming_soon: 'Chaîne YouTube en construction...',
+        visit_channel: 'Voir la chaîne YouTube'
       },
       legal: {
         title: 'Mentions légales',
@@ -72,6 +92,11 @@ const resources = {
   en: {
     translation: {
       connect_dots: 'Connect the dots',
+      lockscreen: {
+        reset: 'Reset',
+        error: 'Incorrect pattern. Try again.',
+        skip: 'Enter without the pattern'
+      },
       theme: {
         toggle: 'Toggle light/dark theme'
       },
@@ -90,7 +115,9 @@ const resources = {
         info: 'Info',
         contact: 'Contact',
         youtube: 'YouTube',
-        menu: 'Menu'
+        menu: 'Menu',
+        open_menu: 'Open menu',
+        close_menu: 'Close menu'
       },
       footer: {
         rights: 'All rights reserved.',
@@ -108,7 +135,9 @@ const resources = {
       },
       events: {
         title: 'Events',
-        coming_soon: 'Calendar coming soon...'
+        coming_soon: 'Calendar coming soon...',
+        upcoming: 'Upcoming',
+        past: 'Past events'
       },
       gallery: {
         title: 'Gallery',
@@ -116,15 +145,26 @@ const resources = {
       },
       info: {
         title: 'Information',
-        coming_soon: 'Information coming soon...'
+        coming_soon: 'Information coming soon...',
+        contact_heading: 'Contact',
+        hours_heading: 'Opening hours',
+        socials_heading: 'Social media'
       },
       contact: {
         title: 'Contact',
-        coming_soon: 'Form coming soon...'
+        coming_soon: 'Form coming soon...',
+        name: 'Name',
+        email: 'Email',
+        message: 'Message',
+        send: 'Send',
+        sending: 'Sending…',
+        sent: 'Thank you! Your message has been sent.',
+        error: 'Sending failed. Please try again later.'
       },
       youtube: {
         title: 'YouTube',
-        coming_soon: 'YouTube channel coming soon...'
+        coming_soon: 'YouTube channel coming soon...',
+        visit_channel: 'Visit the YouTube channel'
       },
       legal: {
         title: 'Legal Notice',
@@ -148,5 +188,10 @@ i18n
       escapeValue: false
     }
   });
+
+// Keep <html lang> in sync for accessibility and SEO
+i18n.on('languageChanged', (lng) => {
+  document.documentElement.lang = lng;
+});
 
 export default i18n; 

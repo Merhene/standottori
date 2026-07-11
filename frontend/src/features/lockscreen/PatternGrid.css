@@ -20,8 +20,7 @@
   /* Ensure no overflow on any screen size */
   max-width: 90vw;
   max-height: 90vh;
-  /* Debug border to see container */
-  border: 2px solid rgba(255, 0, 0, 0.2);
+  border: 2px solid transparent; /* keeps success/error border colours from shifting the layout */
 }
 
 .pattern-point {
@@ -189,29 +188,27 @@
   to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
-/* Debug info */
-.debug-info {
-  position: absolute;
-  bottom: -100px;
+/* Discreet accessible skip link (keyboard / assistive tech alternative) */
+.skip-button {
+  position: fixed;
+  bottom: 16px;
   left: 50%;
   transform: translateX(-50%);
+  padding: 6px 12px;
+  background: transparent;
+  border: none;
+  color: #888;
   font-size: 12px;
-  color: #666;
-  background: rgba(255, 255, 255, 0.8);
-  padding: 4px 8px;
-  border-radius: 4px;
-  white-space: nowrap;
-  z-index: 20;
+  text-decoration: underline;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+  z-index: 30;
 }
 
-.validation-status.success {
-  color: #00aa00;
-  font-weight: bold;
-}
-
-.validation-status.error {
-  color: #aa0000;
-  font-weight: bold;
+.skip-button:hover,
+.skip-button:focus-visible {
+  opacity: 1;
 }
 
 /* Individual point positioning - now handled by inline styles in React */

@@ -6,21 +6,21 @@ export default function AdminGallery() {
       icon: 'pi-pencil',
       title: 'Tattoo',
       description: 'Tattoos réalisés par l\'artiste.',
-      path: '/admin/galerie/tattoo',
+      path: '/admin/gallery/tattoo',
       count: 0
     },
     {
       icon: 'pi-bolt',
       title: 'Flash',
       description: 'Dessins de tattoo proposés, mais non tatoués.',
-      path: '/admin/galerie/flash',
+      path: '/admin/gallery/flash',
       count: 0
     },
     {
       icon: 'pi-desktop',
       title: 'Wallpaper',
       description: 'Fonds d\'écran de la page d\'accueil.',
-      path: '/admin/galerie/wallpaper',
+      path: '/admin/gallery/wallpaper',
       count: 0
     }
   ];

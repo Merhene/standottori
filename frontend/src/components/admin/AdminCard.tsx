@@ -19,8 +19,8 @@ export default function AdminCard({
 }: AdminCardProps) {
   return (
     <div className="p-6 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
-      <div className="flex align-items-center justify-content-between mb-4">
-        <div className="flex align-items-center gap-3">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
           <i className={`pi ${icon} text-2xl`} />
           <h2 className="text-xl font-semibold">{title}</h2>
         </div>
@@ -38,6 +38,8 @@ export default function AdminCard({
     </div>
   );
 }
+
+
 
 
 
