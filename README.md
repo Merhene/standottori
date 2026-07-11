@@ -1,69 +1,76 @@
-# React + TypeScript + Vite
+# Standottori
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Portfolio website for the tattoo artist **Standottori**: pattern-lock artistic entry gate, fullscreen carousel homepage, tattoo/flash galleries, events, biography with a scroll-driven zoom reveal, contact form, and a custom admin panel for the artist.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Frontend**: React 19 + TypeScript + Vite, Tailwind CSS v4, PrimeIcons, react-router, i18next (FR/EN)
+- **Backend**: [Supabase](https://supabase.com) — Postgres (content), Storage (images), Auth (single admin), Edge Function (contact email via [Resend](https://resend.com))
+- **Hosting**: Vercel (frontend) + Supabase
 
-## Expanding the ESLint configuration
+## Project structure
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+frontend/            React app
+  src/
+    components/      Shared UI (layout, admin widgets, GalleryGrid, ZoomReveal…)
+    context/         ThemeProvider, AuthProvider
+    features/        Lock screen, carousel
+    hooks/           useTheme, useAuth
+    lib/             Supabase client, content services, types, image utils
+    pages/           Public pages + admin pages
+supabase/
+  migrations/        Database schema (SQL)
+  functions/         Edge Functions (contact-email)
+images/              Source logo assets
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Local development
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+cd frontend
+npm install
+npm run dev        # http://localhost:5173
 ```
+
+Without Supabase credentials the site runs in a degraded mode: static fallback images, placeholder texts, and the admin shows a "backend not configured" notice.
+
+## Supabase setup (one-time)
+
+1. Create a project on [supabase.com](https://supabase.com) (free tier).
+2. **Schema**: open *SQL Editor*, paste and run `supabase/migrations/0001_initial_schema.sql`.
+3. **Admin user**: *Authentication > Users > Add user* — create the artist's account (email + password).
+4. **Disable sign-ups**: *Authentication > Sign In / Up > disable "Allow new users to sign up"* (the RLS policies grant write access to any authenticated user, so this must stay off).
+5. **Env vars**: copy `frontend/.env.example` to `frontend/.env.local` and fill in the *Project URL* and *anon public key* from *Project Settings > API*. Restart `npm run dev`.
+6. **Contact email** (optional until launch):
+   - Create a free [Resend](https://resend.com) account and an API key.
+   - Install the [Supabase CLI](https://supabase.com/docs/guides/cli), then:
+
+     ```bash
+     supabase login
+     supabase link --project-ref <your-project-ref>
+     supabase secrets set RESEND_API_KEY=re_xxx CONTACT_TO_EMAIL=artist@email.com
+     supabase functions deploy contact-email --no-verify-jwt
+     ```
+
+## Deployment (Vercel)
+
+1. Push the repo to GitHub.
+2. On [vercel.com](https://vercel.com): *Add New Project* > import the repo.
+3. Set **Root Directory** to `frontend` (framework preset: Vite).
+4. Add the environment variables `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
+5. Deploy. SPA routing is handled by `frontend/vercel.json`.
+
+Every push to the connected branch redeploys automatically. CI (lint + build) runs on GitHub Actions for `main`/`develop`.
+
+## Admin panel
+
+- `/admin` — protected by Supabase Auth (login at `/admin/login`).
+- Gallery (tattoo / flash / wallpaper): upload (client-side compressed), delete. Wallpapers feed the homepage carousel.
+- Events: create / edit / delete, with upcoming/past display on the public page.
+- Biography, site info (contact, socials, hours) and settings (default theme, lock screen toggle, SEO) are editable.
+
+## Notes
+
+- The lock screen pattern is `a → c → f → d → b → e → a` (defined in `frontend/src/features/lockscreen/PatternGrid.tsx`). It is an artistic gate, not a security feature. A discreet accessible "skip" link exists for keyboard/assistive-tech users.
+- Supabase free tier pauses projects after ~1 week without traffic; revisit before launch or upgrade.

@@ -6,37 +6,31 @@ export default function Admin() {
       icon: 'pi-calendar',
       title: 'Événements',
       description: 'Gérer les événements, dates et lieux.',
-      path: '/admin/evenements'
+      path: '/admin/events'
     },
     {
       icon: 'pi-images',
       title: 'Galerie',
       description: 'Ajouter, modifier ou supprimer des images.',
-      path: '/admin/galerie'
+      path: '/admin/gallery'
     },
     {
       icon: 'pi-user',
       title: 'Biographie',
       description: 'Modifier le contenu de la biographie.',
-      path: '/admin/biographie'
+      path: '/admin/biography'
     },
     {
       icon: 'pi-info-circle',
       title: 'Informations',
       description: 'Modifier les informations générales.',
-      path: '/admin/informations'
-    },
-    {
-      icon: 'pi-envelope',
-      title: 'Messages',
-      description: 'Consulter les messages reçus.',
-      path: '/admin/messages'
+      path: '/admin/info'
     },
     {
       icon: 'pi-cog',
       title: 'Paramètres',
       description: 'Configurer le site et les préférences.',
-      path: '/admin/parametres'
+      path: '/admin/settings'
     }
   ];
 

@@ -16,7 +16,7 @@ export default function ThemeToggle({ transparent = false }: ThemeToggleProps) {
   return (
     <button
       onClick={toggleTheme}
-      className={`flex align-items-center justify-content-center hover:opacity-70 transition-opacity ${colorClass}`}
+      className={`flex items-center justify-center hover:opacity-70 transition-opacity ${colorClass}`}
       style={{ width: '1.25rem', height: '1.25rem', background: 'transparent', border: 'none', cursor: 'pointer' }}
       aria-label={t('theme.toggle')}
     >

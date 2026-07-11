@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import './PatternGrid.css';
 
 interface PatternGridProps {
@@ -30,6 +31,7 @@ function arraysEqual(a: string[], b: string[]): boolean {
 }
 
 const PatternGrid: React.FC<PatternGridProps> = ({ onPatternSuccess }) => {
+  const { t } = useTranslation();
   const [selectedPoints, setSelectedPoints] = useState<string[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const [currentPointer, setCurrentPointer] = useState<{ x: number; y: number } | null>(null);
@@ -59,7 +61,7 @@ const PatternGrid: React.FC<PatternGridProps> = ({ onPatternSuccess }) => {
       }, 500);
     } else {
       setValidationState('error');
-      setErrorMessage('Incorrect pattern. Try again.');
+      setErrorMessage(t('lockscreen.error'));
       setIsShaking(true);
       
       // Auto-clear error after 2 seconds
@@ -72,7 +74,7 @@ const PatternGrid: React.FC<PatternGridProps> = ({ onPatternSuccess }) => {
         setIsShaking(false);
       }, 600);
     }
-  }, [onPatternSuccess]);
+  }, [onPatternSuccess, t]);
 
   // Convert screen coordinates to container-relative percentages
   const getContainerCoordinates = useCallback((clientX: number, clientY: number): { x: number; y: number } | null => {
@@ -316,26 +318,22 @@ const PatternGrid: React.FC<PatternGridProps> = ({ onPatternSuccess }) => {
           onClick={resetPattern}
           disabled={selectedPoints.length === 0}
         >
-          Reset
+          {t('lockscreen.reset')}
         </button>
 
         {/* Error message */}
         {errorMessage && (
-          <div className="error-message">
+          <div className="error-message" role="alert">
             {errorMessage}
           </div>
         )}
-
-        {/* Debug info */}
-        <div className="debug-info">
-          Selected: {selectedPoints.join(' → ')}
-          {validationState !== 'idle' && (
-            <span className={`validation-status ${validationState}`}>
-              {validationState === 'success' ? ' ✓ Correct!' : ' ✗ Incorrect'}
-            </span>
-          )}
-        </div>
       </div>
+
+      {/* Accessible alternative: the pattern requires a pointer, so keyboard
+          and assistive-technology users need a way in */}
+      <button className="skip-button" onClick={() => onPatternSuccess?.()}>
+        {t('lockscreen.skip')}
+      </button>
     </div>
   );
 };

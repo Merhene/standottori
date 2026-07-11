@@ -1,6 +1,14 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/* Dark mode driven by the .dark class on <html> (managed by ThemeProvider) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-dark-bg: #171617;
+  --color-dark-text: #eae7d3;
+  --color-light-bg: #f4edde;
+  --color-light-text: #171617;
+}
 
 @layer base {
   html,
@@ -21,72 +29,10 @@
   }
 }
 
-@layer utilities {
-  .animate-draw {
-    animation: draw 0.5s ease-out forwards;
-    stroke-dasharray: 1000;
-    stroke-dashoffset: 1000;
-  }
-
-  /* Generic fade-in utility */
-  .animate-fade-in {
-    animation: fadeIn 0.6s ease-out forwards;
-  }
-
-  /* Zoom + fade utility: scales from star centre */
-  .animate-zoom-fade-in {
-    animation: zoomFadeIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    transform-origin: center;
-  }
-
-  /* Fade/scale gently from center (no perceived bottom influence) */
-  .animate-fade-in-center {
-    animation: fadeInCenter 0.6s ease-out forwards;
-    transform-origin: center;
-  }
-
-  /* Fade in while zooming out (starts slightly enlarged) */
-  .animate-fade-zoom-out {
-    animation: fadeZoomOut 0.8s ease-out forwards;
-    transform-origin: center;
-  }
-}
-
-@keyframes draw {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes zoomFadeIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.1);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes fadeInCenter {
-  0% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
+/* Fade in while zooming out (used when the app unlocks) */
+@utility animate-fade-zoom-out {
+  animation: fadeZoomOut 0.8s ease-out forwards;
+  transform-origin: center;
 }
 
 @keyframes fadeZoomOut {
@@ -100,33 +46,9 @@
   }
 }
 
-/* --- PrimeHeader custom colours --- */
+/* --- Header link colours --- */
 .light .prime-header-link { color: #171617; }
-.dark .prime-header-link { color: #F5F1E8; }
-
-.light .p-menubar { background: #ffffff; border-color:#ffffff; }
-.dark .p-menubar { background:#000000; border-color:#000000; }
-
-.light .prime-header-btn { color: #171617; }
-.dark .prime-header-btn { color: #F5F1E8; }
-
-.light .mobile-header { background:#ffffff; }
-.dark .mobile-header { background:#000000; }
-
-/* Remove background from p-link buttons in header */
-.p-link {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
-/* Remove background from nav buttons */
-.nav-link-clean {
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  cursor: pointer;
-}
+.dark .prime-header-link { color: #f5f1e8; }
 
 /* Admin button style */
 .admin-btn {
@@ -143,10 +65,6 @@
 
 .admin-btn:hover {
   opacity: 0.85;
-}
-
-.admin-btn:visited {
-  text-decoration: none !important;
 }
 
 .light .admin-btn {
