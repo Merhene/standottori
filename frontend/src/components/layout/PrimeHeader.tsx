@@ -7,6 +7,8 @@ import { useTheme } from '../../hooks/useTheme';
 interface PrimeHeaderProps {
   transparent?: boolean;
   hideOnScroll?: boolean;
+  /** Dark icons/text over a light surface (e.g. playground light mode) */
+  darkChrome?: boolean;
 }
 
 /* Animated burger icon: three bars morphing into a cross */
@@ -32,7 +34,11 @@ function BurgerIcon({ isOpen }: { isOpen: boolean }) {
   );
 }
 
-export default function PrimeHeader({ transparent = false, hideOnScroll = false }: PrimeHeaderProps) {
+export default function PrimeHeader({
+  transparent = false,
+  hideOnScroll = false,
+  darkChrome = false,
+}: PrimeHeaderProps) {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const navigate = useNavigate();
@@ -40,7 +46,6 @@ export default function PrimeHeader({ transparent = false, hideOnScroll = false 
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const lastScrollY = useRef(0);
 
-  // Hide on scroll down, show on scroll up
   useEffect(() => {
     if (!hideOnScroll) return;
 
@@ -63,6 +68,7 @@ export default function PrimeHeader({ transparent = false, hideOnScroll = false 
     { label: t('nav.info'), path: '/info' },
     { label: t('nav.contact'), path: '/contact' },
     { label: t('nav.youtube'), path: '/youtube' },
+    { label: t('nav.playground'), path: '/playground' },
   ];
 
   const handleNavClick = (path: string) => {
@@ -70,19 +76,39 @@ export default function PrimeHeader({ transparent = false, hideOnScroll = false 
     setIsMenuOpen(false);
   };
 
+  // Mobile open menu uses a dark overlay → white chrome there only.
+  // Desktop open menu stays on the light playground surface → keep dark chrome.
+  const desktopDarkChrome = darkChrome;
+  const mobileDarkChrome = darkChrome && !isMenuOpen;
+
   const getLogoSrc = (isMobile: boolean) => {
-    if (transparent) return '/images/logo.png'; // Fullscreen pages: always white
-    if (isMobile && isMenuOpen) return '/images/logo.png'; // Mobile menu open = white
+    if (isMobile && isMenuOpen) return '/images/logo.png';
+    if (darkChrome) return '/images/blacklogo.png';
+    if (transparent) return '/images/logo.png';
     return theme === 'dark' ? '/images/logo.png' : '/images/blacklogo.png';
   };
 
-  // Desktop text is only white when the header is transparent
-  const desktopTextClass = transparent ? 'text-white drop-shadow-lg' : 'prime-header-link';
+  const lightTextClass = 'text-white drop-shadow-lg';
+  const darkTextClass = 'text-neutral-900';
 
-  // Mobile text is white when transparent OR menu is open (dark overlay)
-  const mobileTextClass = transparent || isMenuOpen ? 'text-white drop-shadow-lg' : 'prime-header-link';
+  const desktopTextClass = transparent
+    ? desktopDarkChrome
+      ? darkTextClass
+      : lightTextClass
+    : 'prime-header-link';
+
+  const mobileTextClass =
+    transparent || isMenuOpen
+      ? mobileDarkChrome
+        ? darkTextClass
+        : lightTextClass
+      : 'prime-header-link';
 
   const shadowClass = transparent && !isMenuOpen ? '' : 'shadow-md';
+  const desktopLogoShadow = transparent && !desktopDarkChrome ? 'drop-shadow-lg' : '';
+  const mobileLogoShadow = transparent && !mobileDarkChrome ? 'drop-shadow-lg' : '';
+  const desktopThemeToggleLight = transparent && !desktopDarkChrome;
+  const mobileThemeToggleLight = (transparent && !mobileDarkChrome) || isMenuOpen;
 
   const getDesktopBgColor = () => {
     if (transparent) return 'transparent';
@@ -109,24 +135,23 @@ export default function PrimeHeader({ transparent = false, hideOnScroll = false 
     <>
       {/* Desktop Header */}
       <header
-        className={`hidden lg:block sticky top-0 z-10 ${transparent ? '' : 'shadow-md'} transition-colors duration-300`}
+        className={`hidden lg:block sticky top-0 z-10 w-full max-w-full overflow-x-hidden ${transparent ? '' : 'shadow-md'} transition-colors duration-300`}
         style={{ backgroundColor: getDesktopBgColor(), ...headerTransformStyle }}
       >
-        <div className="flex items-center justify-between px-4 py-3">
-          {/* Left: Logo + Burger + Navigation tabs */}
-          <div className="flex items-center gap-4">
-            <Link to="/" className="flex items-center no-underline">
+        <div className="flex w-full items-center justify-between gap-3 px-4 py-3">
+          <div className="flex min-w-0 flex-1 items-center gap-4 overflow-hidden">
+            <Link to="/" className="flex shrink-0 items-center no-underline">
               <img
                 src={getLogoSrc(false)}
                 alt="Standottori logo"
                 style={{ height: '2.25rem', width: 'auto' }}
-                className={transparent ? 'drop-shadow-lg' : ''}
+                className={desktopLogoShadow}
               />
             </Link>
 
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className={`flex items-center justify-center bg-transparent border-none cursor-pointer ${desktopTextClass}`}
+              className={`flex shrink-0 items-center justify-center bg-transparent border-none cursor-pointer ${desktopTextClass}`}
               style={{ width: '40px', height: '40px' }}
               aria-label={isMenuOpen ? t('nav.close_menu') : t('nav.open_menu')}
               aria-expanded={isMenuOpen}
@@ -134,10 +159,14 @@ export default function PrimeHeader({ transparent = false, hideOnScroll = false 
               <BurgerIcon isOpen={isMenuOpen} />
             </button>
 
-            {/* Navigation tabs - inline, visible only when menu is open */}
+            {/*
+              min-w-0 is required: without it, collapsed nav labels still
+              contribute min-content width and push lang/theme off-screen
+              (common on tablet widths that use this desktop header).
+            */}
             <nav
-              className={`flex items-center overflow-hidden transition-all duration-300 ease-out ${
-                isMenuOpen ? 'max-w-[100vw] opacity-100' : 'max-w-0 opacity-0'
+              className={`flex min-w-0 items-center overflow-hidden transition-[max-width,opacity] duration-300 ease-out ${
+                isMenuOpen ? 'max-w-[min(100%,70vw)] opacity-100' : 'max-w-0 opacity-0'
               }`}
             >
               <ul className="flex items-center gap-4 list-none m-0 p-0 whitespace-nowrap">
@@ -155,39 +184,37 @@ export default function PrimeHeader({ transparent = false, hideOnScroll = false 
             </nav>
           </div>
 
-          {/* Right: Language toggle + Theme toggle */}
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-3">
             <button
               onClick={changeLang}
               className={`bg-transparent border-none cursor-pointer text-sm font-semibold ${desktopTextClass}`}
             >
               {i18n.language === 'fr' ? 'EN' : 'FR'}
             </button>
-            <ThemeToggle transparent={transparent || isMenuOpen} />
+            <ThemeToggle transparent={desktopThemeToggleLight} />
           </div>
         </div>
       </header>
 
       {/* Mobile/Tablet header */}
       <header
-        className={`lg:hidden sticky top-0 z-10 ${shadowClass} transition-colors duration-300`}
+        className={`lg:hidden sticky top-0 z-10 w-full max-w-full overflow-x-hidden ${shadowClass} transition-colors duration-300`}
         style={{ backgroundColor: getMobileBgColor(), ...headerTransformStyle }}
       >
-        <div className="flex items-center justify-between px-3 py-2">
-          {/* Left: Logo + Burger */}
-          <div className="flex items-center gap-2">
-            <Link to="/" className="flex items-center no-underline">
+        <div className="flex w-full items-center justify-between gap-2 px-3 py-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <Link to="/" className="flex shrink-0 items-center no-underline">
               <img
                 src={getLogoSrc(true)}
                 alt="Standottori logo"
-                style={{ height: '2.25rem', width: 'auto' }}
-                className={transparent ? 'drop-shadow-lg' : ''}
+                style={{ height: '2.25rem', width: 'auto', maxWidth: '9rem' }}
+                className={mobileLogoShadow}
               />
             </Link>
 
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className={`flex items-center justify-center bg-transparent border-none cursor-pointer ${mobileTextClass}`}
+              className={`flex shrink-0 items-center justify-center bg-transparent border-none cursor-pointer ${mobileTextClass}`}
               style={{ width: '40px', height: '40px' }}
               aria-label={isMenuOpen ? t('nav.close_menu') : t('nav.open_menu')}
               aria-expanded={isMenuOpen}
@@ -196,19 +223,17 @@ export default function PrimeHeader({ transparent = false, hideOnScroll = false 
             </button>
           </div>
 
-          {/* Right: Language toggle + Theme toggle */}
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-3">
             <button
               onClick={changeLang}
               className={`bg-transparent border-none cursor-pointer text-sm font-semibold ${mobileTextClass}`}
             >
               {i18n.language === 'fr' ? 'EN' : 'FR'}
             </button>
-            <ThemeToggle transparent={transparent || isMenuOpen} />
+            <ThemeToggle transparent={mobileThemeToggleLight} />
           </div>
         </div>
 
-        {/* Navigation tabs - visible only when menu is open */}
         <nav
           className={`overflow-hidden transition-all duration-300 ease-out ${
             isMenuOpen ? 'max-h-screen' : 'max-h-0'

@@ -9,6 +9,7 @@ import Gallery from './pages/Gallery';
 import Info from './pages/Info';
 import Contact from './pages/Contact';
 import YouTube from './pages/YouTube';
+import Playground from './pages/Playground';
 import Legal from './pages/Legal';
 import Privacy from './pages/Privacy';
 import GalleryBook from './pages/gallery/GalleryBook';
@@ -81,6 +82,7 @@ function App() {
                     <Route path="info" element={<Info />} />
                     <Route path="contact" element={<Contact />} />
                     <Route path="youtube" element={<YouTube />} />
+                    <Route path="playground" element={<Playground />} />
                     <Route path="legal" element={<Legal />} />
                     <Route path="privacy" element={<Privacy />} />
 
