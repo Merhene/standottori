@@ -13,6 +13,7 @@ export default function Layout() {
   const isStickyHeaderPage =
     path === '/gallery/book' || path === '/gallery/flash' || path === '/biography';
   const isPlayground = path === '/playground';
+  const isBiography = path === '/biography';
   const isFullscreenPage =
     isHomePage || isGalleryPage || isStickyHeaderPage || isPlayground;
 
@@ -21,7 +22,7 @@ export default function Layout() {
     return (
       <div className="relative min-h-screen">
         <div className={`${isStickyHeaderPage ? 'sticky' : 'fixed'} top-0 left-0 right-0 z-10 w-full max-w-[100vw] overflow-x-hidden`}>
-          <PrimeHeader transparent darkChrome={isPlayground && theme === 'light'} />
+          <PrimeHeader transparent darkChrome={(isPlayground || isBiography) && theme === 'light'} />
         </div>
 
         <Outlet />

@@ -29,9 +29,13 @@
   }
 }
 
-/* Fade in while zooming out (used when the app unlocks) */
+/* Fade in while zooming out (used when the app unlocks).
+   No `forwards` fill: keeping the final transform (even scale(1)) would make
+   this wrapper the containing block for every position:fixed descendant,
+   anchoring them to the page instead of the viewport. The 100% keyframe
+   equals the natural state, so nothing changes visually when it ends. */
 @utility animate-fade-zoom-out {
-  animation: fadeZoomOut 0.8s ease-out forwards;
+  animation: fadeZoomOut 0.8s ease-out;
   transform-origin: center;
 }
 

@@ -1,4 +1,4 @@
-export type GalleryCategory = 'tattoo' | 'flash' | 'wallpaper';
+export type GalleryCategory = 'tattoo' | 'flash' | 'wallpaper' | 'biography';
 
 export interface GalleryImage {
   id: string;
@@ -26,6 +26,8 @@ export interface Biography {
   title: string | null;
   content: string | null;
   photo_path: string | null;
+  image_top_path: string | null;
+  image_bottom_path: string | null;
   updated_at: string;
 }
 
