@@ -29,9 +29,13 @@
   }
 }
 
-/* Fade in while zooming out (used when the app unlocks) */
+/* Fade in while zooming out (used when the app unlocks).
+   No `forwards` fill: keeping the final transform (even scale(1)) would make
+   this wrapper the containing block for every position:fixed descendant,
+   anchoring them to the page instead of the viewport. The 100% keyframe
+   equals the natural state, so nothing changes visually when it ends. */
 @utility animate-fade-zoom-out {
-  animation: fadeZoomOut 0.8s ease-out forwards;
+  animation: fadeZoomOut 0.8s ease-out;
   transform-origin: center;
 }
 
@@ -97,3 +101,148 @@
 .dark .admin-breadcrumb-link {
   color: #f5f1e8 !important;
 }
+
+/* Playground dark stage — floor plate stays wide/flat on all breakpoints */
+.playground-stage-bg {
+  background:
+    /* Floor plate */
+    radial-gradient(
+      ellipse 70% 22% at 50% 90%,
+      rgba(255, 180, 230, 0.55) 0%,
+      rgba(255, 40, 170, 0.28) 28%,
+      transparent 62%
+    ),
+    /* Soft vertical wash (kept short so it doesn’t read as a ball) */
+    radial-gradient(
+      ellipse 48% 42% at 50% 78%,
+      rgba(200, 30, 150, 0.28) 0%,
+      rgba(120, 10, 100, 0.12) 40%,
+      transparent 70%
+    ),
+    /* Ambient behind logo */
+    radial-gradient(
+      ellipse 70% 55% at 50% 42%,
+      rgba(90, 20, 80, 0.35) 0%,
+      rgba(40, 8, 40, 0.12) 42%,
+      transparent 70%
+    ),
+    radial-gradient(ellipse 100% 100% at 50% 50%, #0a050a 0%, #000000 72%);
+}
+
+/* Portrait / tablet: exaggerate width, crush height → true floor plate */
+@media (max-width: 1023px) {
+  .playground-stage-bg {
+    background:
+      radial-gradient(
+        ellipse 140% 10% at 50% 88%,
+        rgba(255, 180, 230, 0.58) 0%,
+        rgba(255, 40, 170, 0.26) 32%,
+        transparent 68%
+      ),
+      radial-gradient(
+        ellipse 95% 18% at 50% 82%,
+        rgba(200, 30, 150, 0.26) 0%,
+        rgba(120, 10, 100, 0.1) 42%,
+        transparent 72%
+      ),
+      radial-gradient(
+        ellipse 85% 38% at 50% 40%,
+        rgba(90, 20, 80, 0.32) 0%,
+        rgba(40, 8, 40, 0.1) 45%,
+        transparent 72%
+      ),
+      radial-gradient(ellipse 100% 100% at 50% 50%, #0a050a 0%, #000000 72%);
+  }
+}
+
+@media (max-width: 640px) {
+  .playground-stage-bg {
+    background:
+      radial-gradient(
+        ellipse 160% 8% at 50% 86%,
+        rgba(255, 180, 230, 0.6) 0%,
+        rgba(255, 40, 170, 0.24) 34%,
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 110% 14% at 50% 80%,
+        rgba(200, 30, 150, 0.24) 0%,
+        rgba(120, 10, 100, 0.09) 45%,
+        transparent 74%
+      ),
+      radial-gradient(
+        ellipse 90% 32% at 50% 38%,
+        rgba(90, 20, 80, 0.3) 0%,
+        rgba(40, 8, 40, 0.1) 45%,
+        transparent 72%
+      ),
+      radial-gradient(ellipse 100% 100% at 50% 50%, #0a050a 0%, #000000 72%);
+  }
+}
+
+@keyframes playground-stage-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes playground-stage-idle-flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  38% {
+    opacity: 1;
+  }
+  39% {
+    opacity: 0.78;
+  }
+  40.5% {
+    opacity: 1;
+  }
+  63% {
+    opacity: 1;
+  }
+  64% {
+    opacity: 0.88;
+  }
+  65% {
+    opacity: 0.72;
+  }
+  66.5% {
+    opacity: 1;
+  }
+  84% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 0.9;
+  }
+  86% {
+    opacity: 1;
+  }
+}
+
+.playground-stage-awake {
+  animation:
+    playground-stage-fade 2.8s ease-in-out forwards,
+    playground-stage-idle-flicker 5.5s ease-in-out 2.8s infinite;
+}
+
+/* After the first entrance — idle flicker only (no fade replay on theme toggle) */
+.playground-stage-ready {
+  opacity: 1;
+  animation: playground-stage-idle-flicker 5.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .playground-stage-awake,
+  .playground-stage-ready {
+    animation: none;
+    opacity: 1;
+  }
+}
+

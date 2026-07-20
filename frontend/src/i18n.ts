@@ -28,6 +28,7 @@ const resources = {
         info: 'Info',
         contact: 'Contact',
         youtube: 'YouTube',
+        playground: 'Playground',
         menu: 'Menu',
         open_menu: 'Ouvrir le menu',
         close_menu: 'Fermer le menu'
@@ -115,6 +116,7 @@ const resources = {
         info: 'Info',
         contact: 'Contact',
         youtube: 'YouTube',
+        playground: 'Playground',
         menu: 'Menu',
         open_menu: 'Open menu',
         close_menu: 'Close menu'

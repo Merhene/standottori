@@ -1,14 +1,28 @@
 import { useState, useEffect } from 'react';
 import FixedBackground from './FixedBackground';
+import { useTheme } from '../hooks/useTheme';
 
 interface ZoomRevealProps {
   backgroundSrc: string;
   backgroundAlt?: string;
   logoSrc: string;
+  /** Light-mode variant of logoSrc (light plate, same cutout geometry) */
+  logoLightSrc?: string;
   neonSrc: string;
+  /** Engraved logo shown instead of the neon in light mode */
+  lightSrc?: string;
   /** Content revealed after the zoom-out completes */
   children: React.ReactNode;
 }
+
+// logocreuse.png (1024x1024, transparent) vs logoneon.png (1920x1080, opaque
+// plate): measured from their alpha/ink bounding boxes so the engraved logo
+// overlays the neon's ink exactly (same shape, different padding).
+// width = (740/1920) / (724/1024); left/top align the two ink centres
+// (top is relative to the container height, i.e. width * 1080/1920).
+const LIGHT_LOGO_WIDTH_PCT = 54.5;
+const LIGHT_LOGO_LEFT_PCT = 22.43;
+const LIGHT_LOGO_TOP_PCT = -2.15;
 
 // Geometry of logotrans-cutout.png (1920x1080), measured from its alpha
 // channel: the transparent "window" around the image centre extends
@@ -61,9 +75,16 @@ export default function ZoomReveal({
   backgroundSrc,
   backgroundAlt = 'Background',
   logoSrc,
+  logoLightSrc,
   neonSrc,
+  lightSrc,
   children,
 }: ZoomRevealProps) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark' || !lightSrc;
+  // Page surface once the zoom is done (matches the playground light mode)
+  const pageBg = isDark ? '#171717' : '#f8f8f8';
+  const pageBgTransparent = isDark ? 'rgba(23, 23, 23, 0)' : 'rgba(248, 248, 248, 0)';
   const [scrollProgress, setScrollProgress] = useState(0);
   const [postNeonScroll, setPostNeonScroll] = useState(0); // Scroll after the neon appears
   const [viewport, setViewport] = useState(() => ({
@@ -128,17 +149,38 @@ export default function ZoomReveal({
 
   // On mobile: Y translation to move the logo up after the neon appears.
   // On small screens: initial upward offset that fades out with scroll.
+  // 25vh (not 35) so the final position stays below the navbar.
   const smallMobileInitialOffset = isSmallMobile ? -15 * (1 - scrollProgress) : 0;
   const mobileTranslateY = isMobile
-    ? `${smallMobileInitialOffset - postNeonScroll * 35}vh`
+    ? `${smallMobileInitialOffset - postNeonScroll * 25}vh`
     : '0';
+
+  // Desktop final settle: over the last 15% of the zoom, ease the logo down
+  // below the transparent navbar. Zero effect on the rest of the animation.
+  const navSettle = Math.min(1, Math.max(0, (scrollProgress - 0.85) / 0.15));
+  const logoTranslateY = isMobile ? mobileTranslateY : `${(navSettle * 104).toFixed(1)}px`;
+
+  // Text end zone: bottom edge of the logo at its final resting position.
+  // Desktop: top-aligned + 104px settle. Mobile: centered then moved up 25vh.
+  const logoContainerHeight = viewport.width * logoWidthFraction * LOGO_ASPECT;
+  const logoFinalBottom = Math.round(
+    isMobile
+      ? viewport.height * 0.25 + logoContainerHeight / 2
+      : 104 + logoContainerHeight
+  );
+  const endZoneFade = 40;
+  const endZoneHeight = logoFinalBottom + endZoneFade;
 
   // Reduced motion: skip the scroll animation, show the final state directly
   if (prefersReducedMotion) {
     return (
-      <div className="min-h-screen" style={{ backgroundColor: '#171717' }}>
-        <div className="flex justify-center pt-8">
-          <img src={neonSrc} alt="Logo" style={{ width: 'min(60vw, 400px)', height: 'auto' }} />
+      <div className="min-h-screen" style={{ backgroundColor: pageBg }}>
+        <div className="flex justify-center pt-24">
+          <img
+            src={isDark ? neonSrc : lightSrc}
+            alt="Logo"
+            style={{ width: 'min(60vw, 400px)', height: 'auto' }}
+          />
         </div>
         <div style={{ position: 'relative', zIndex: 2, padding: '2rem 1rem' }}>{children}</div>
       </div>
@@ -157,7 +199,7 @@ export default function ZoomReveal({
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: '#171717',
+          backgroundColor: pageBg,
           opacity: blackOverlayOpacity,
           zIndex: 0,
           pointerEvents: 'none',
@@ -165,12 +207,36 @@ export default function ZoomReveal({
         }}
       />
 
-      {/* Logo - sticky under the header, zooms at the center */}
+      {/*
+        Text end zone: invisible band (same colour as the page) covering
+        navbar + logo area. Text scrolling up dissolves right under the logo.
+        Above content (z2), below the logo layer (z6) and header (z10).
+        Only active once the zoom is done, so it never covers the animation.
+      */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: `${endZoneHeight}px`,
+          background: `linear-gradient(to bottom, ${pageBg} ${logoFinalBottom}px, ${pageBgTransparent} 100%)`,
+          opacity: scrollProgress >= 1 ? 1 : 0,
+          zIndex: 5,
+          pointerEvents: 'none',
+          transition: 'opacity 0.5s ease-in',
+        }}
+      />
+
+      {/* Logo - sticky under the header, zooms at the center.
+          z6: above the end-zone band (z5) so the neon stays visible;
+          pointerEvents none so text below stays clickable/selectable. */}
       <div
         style={{
           position: 'sticky',
           top: 0,
-          zIndex: 1,
+          zIndex: 6,
           width: '100%',
           height: '100vh',
           display: 'flex',
@@ -179,6 +245,7 @@ export default function ZoomReveal({
           // Desktop: always at the top
           alignItems: isMobile ? 'center' : 'flex-start',
           overflow: 'hidden',
+          pointerEvents: 'none',
         }}
       >
         {/* Container for the logo and the white filter */}
@@ -186,38 +253,56 @@ export default function ZoomReveal({
           style={{
             position: 'relative',
             width: logoWidth,
-            transform: `translateY(${mobileTranslateY}) scale(${starScale})`,
+            transform: `translateY(${logoTranslateY}) scale(${starScale})`,
             transformOrigin: 'center center',
             transition: 'transform 0.1s ease-out',
           }}
         >
-          {/* White filter - behind the logo, slightly inset */}
+          {/* Cutout group: plate + ink backing fade out as ONE composited
+              layer in light mode. Fading them separately lets the dark
+              backing bleed through the semi-transparent plate mid-fade
+              (the "dark rectangle" at the end of the animation). */}
           <div
             style={{
-              position: 'absolute',
-              top: '1px',
-              left: '1px',
-              right: '1px',
-              bottom: '1px',
-              backgroundColor: '#ffffff',
-              opacity: whiteFilterOpacity,
-              zIndex: 0,
-              transition: 'opacity 0.05s ease-out',
-            }}
-          />
-          {/* Transparent logo (always visible) */}
-          <img
-            src={logoSrc}
-            alt="Logo"
-            style={{
-              display: 'block',
               position: 'relative',
-              width: '100%',
-              height: 'auto',
               zIndex: 1,
+              opacity: scrollProgress >= 1 && !isDark ? 0 : 1,
+              transition: 'opacity 0.5s ease-in',
             }}
-          />
-          {/* Neon logo (fades in when scrollProgress >= 1) */}
+          >
+            {/* Ink backing - behind the logo, slightly inset; shows through
+                the cutout holes. White ink in dark mode, dark in light. */}
+            <div
+              style={{
+                position: 'absolute',
+                top: '1px',
+                left: '1px',
+                right: '1px',
+                bottom: '1px',
+                backgroundColor: isDark ? '#ffffff' : '#171617',
+                opacity: whiteFilterOpacity,
+                zIndex: 0,
+                transition: 'opacity 0.05s ease-out',
+              }}
+            />
+            {/* Transparent cutout logo. Light mode uses the dedicated
+                light-plate asset so it melts into the page background. */}
+            <img
+              src={isDark || !logoLightSrc ? logoSrc : logoLightSrc}
+              alt="Logo"
+              style={{
+                display: 'block',
+                position: 'relative',
+                width: '100%',
+                height: 'auto',
+                zIndex: 1,
+              }}
+            />
+          </div>
+          {/* Neon logo - dark mode final state. Fades in at the end of the
+              zoom, but disappears INSTANTLY on a dark->light theme switch:
+              fading it out would show its opaque dark plate blended over the
+              light page (dark rectangle during the transition). */}
           <img
             src={neonSrc}
             alt="Logo néon"
@@ -229,11 +314,31 @@ export default function ZoomReveal({
               width: '100%',
               height: 'auto',
               zIndex: 2,
-              opacity: scrollProgress >= 1 ? 1 : 0,
-              transition: 'opacity 0.5s ease-in',
+              opacity: scrollProgress >= 1 && isDark ? 1 : 0,
+              transition: isDark ? 'opacity 0.5s ease-in' : 'none',
               pointerEvents: 'none',
             }}
           />
+          {/* Engraved logo - light mode final state, sized/offset so its ink
+              matches the neon's ink exactly (different source paddings) */}
+          {lightSrc && (
+            <img
+              src={lightSrc}
+              alt="Logo gravé"
+              style={{
+                display: 'block',
+                position: 'absolute',
+                top: `${LIGHT_LOGO_TOP_PCT}%`,
+                left: `${LIGHT_LOGO_LEFT_PCT}%`,
+                width: `${LIGHT_LOGO_WIDTH_PCT}%`,
+                height: 'auto',
+                zIndex: 3,
+                opacity: scrollProgress >= 1 && !isDark ? 1 : 0,
+                transition: 'opacity 0.5s ease-in',
+                pointerEvents: 'none',
+              }}
+            />
+          )}
         </div>
       </div>
 
