@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import './PatternGrid.css';
 
@@ -25,6 +25,22 @@ const POINTS: Point[] = [
 // Correct pattern sequence
 const CORRECT_PATTERN = ['a', 'c', 'f', 'd', 'b', 'e', 'a'];
 
+// Duration of the neon energy flowing through the completed pattern.
+// Keep in sync with the energyFill/energyHead animations in PatternGrid.css.
+const ENERGY_FILL_MS = 1500;
+
+// Discreet guide numbers: order in which the nodes must be connected
+const NODE_ORDER: Record<string, number> = {};
+CORRECT_PATTERN.forEach((id) => {
+  if (!(id in NODE_ORDER)) NODE_ORDER[id] = Object.keys(NODE_ORDER).length + 1;
+});
+
+// Lines stop just short of the dots (in viewBox units, i.e. % of container)
+const NODE_GAP = 2;
+
+// Idle time before the "slide to connect" finger hint appears
+const HINT_DELAY_MS = 5000;
+
 // Helper function to compare two arrays
 function arraysEqual(a: string[], b: string[]): boolean {
   return a.length === b.length && a.every((val, index) => val === b[index]);
@@ -38,7 +54,19 @@ const PatternGrid: React.FC<PatternGridProps> = ({ onPatternSuccess }) => {
   const [validationState, setValidationState] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isShaking, setIsShaking] = useState(false);
+  const [showHint, setShowHint] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Finger hint after a few idle seconds; hides on interaction, re-arms
+  // whenever the pattern is empty again (e.g. after a reset)
+  useEffect(() => {
+    if (isDrawing || selectedPoints.length > 0 || validationState !== 'idle') {
+      setShowHint(false);
+      return;
+    }
+    const id = window.setTimeout(() => setShowHint(true), HINT_DELAY_MS);
+    return () => window.clearTimeout(id);
+  }, [isDrawing, selectedPoints.length, validationState]);
 
   const resetPattern = () => {
     setSelectedPoints([]);
@@ -217,36 +245,90 @@ const PatternGrid: React.FC<PatternGridProps> = ({ onPatternSuccess }) => {
     return POINTS.find(point => point.id === id);
   };
 
-  // Generate SVG path for drawn lines
+  // Drawn lines as separate hairline segments, each trimmed so it starts and
+  // ends at the edge of the node rings (never crossing them)
   const generatePath = (): string => {
     if (selectedPoints.length < 2) return '';
-    
-    const pathCommands: string[] = [];
-    
+
+    const parts: string[] = [];
     for (let i = 0; i < selectedPoints.length - 1; i++) {
-      const currentPoint = getPointById(selectedPoints[i]);
-      const nextPoint = getPointById(selectedPoints[i + 1]);
-      
-      if (currentPoint && nextPoint) {
-        if (i === 0) {
-          pathCommands.push(`M ${currentPoint.x} ${currentPoint.y}`);
-        }
-        pathCommands.push(`L ${nextPoint.x} ${nextPoint.y}`);
-      }
+      const p1 = getPointById(selectedPoints[i]);
+      const p2 = getPointById(selectedPoints[i + 1]);
+      if (!p1 || !p2) continue;
+
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      const len = Math.hypot(dx, dy);
+      if (len <= NODE_GAP * 2) continue;
+
+      const ux = dx / len;
+      const uy = dy / len;
+      parts.push(
+        `M ${(p1.x + ux * NODE_GAP).toFixed(2)} ${(p1.y + uy * NODE_GAP).toFixed(2)} ` +
+          `L ${(p2.x - ux * NODE_GAP).toFixed(2)} ${(p2.y - uy * NODE_GAP).toFixed(2)}`
+      );
     }
-    
-    return pathCommands.join(' ');
+    return parts.join(' ');
   };
 
   // Generate preview line from last selected point to current pointer
   const generatePreviewPath = (): string => {
     if (!isDrawing || selectedPoints.length === 0 || !currentPointer) return '';
-    
+
     const lastPoint = getPointById(selectedPoints[selectedPoints.length - 1]);
     if (!lastPoint) return '';
-    
-    return `M ${lastPoint.x} ${lastPoint.y} L ${currentPointer.x} ${currentPointer.y}`;
+
+    const dx = currentPointer.x - lastPoint.x;
+    const dy = currentPointer.y - lastPoint.y;
+    const len = Math.hypot(dx, dy);
+    if (len <= NODE_GAP) return '';
+
+    const ux = dx / len;
+    const uy = dy / len;
+    return (
+      `M ${(lastPoint.x + ux * NODE_GAP).toFixed(2)} ${(lastPoint.y + uy * NODE_GAP).toFixed(2)} ` +
+      `L ${currentPointer.x.toFixed(2)} ${currentPointer.y.toFixed(2)}`
+    );
   };
+
+  // Energy path: same figure but traced from the LAST touched node backwards,
+  // so the neon flows from where the finger lifted through the whole pattern
+  const generateEnergyPath = (): string => {
+    if (selectedPoints.length < 2) return '';
+
+    return [...selectedPoints]
+      .reverse()
+      .map((id, index) => {
+        const point = getPointById(id);
+        if (!point) return '';
+        return `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`;
+      })
+      .join(' ');
+  };
+
+  // For each node: at which fraction of the energy travel the head reaches it,
+  // so the dots ignite exactly when the light passes through them
+  const getIgnitionDelays = (): Record<string, number> => {
+    const reversed = [...selectedPoints].reverse();
+    const cumulative: number[] = [0];
+    let total = 0;
+
+    for (let i = 1; i < reversed.length; i++) {
+      const a = getPointById(reversed[i - 1]);
+      const b = getPointById(reversed[i]);
+      if (a && b) total += Math.hypot(b.x - a.x, b.y - a.y);
+      cumulative.push(total);
+    }
+
+    const delays: Record<string, number> = {};
+    reversed.forEach((id, i) => {
+      if (!(id in delays)) delays[id] = total > 0 ? cumulative[i] / total : 0;
+    });
+    return delays;
+  };
+
+  const isSuccess = validationState === 'success';
+  const ignitionDelays = isSuccess ? getIgnitionDelays() : null;
 
   return (
     <div className="full-screen">
@@ -266,27 +348,21 @@ const PatternGrid: React.FC<PatternGridProps> = ({ onPatternSuccess }) => {
           viewBox="0 0 100 100"
           preserveAspectRatio="none"
         >
-          {/* Main drawn path */}
-          <path
-            d={generatePath()}
-            className="drawn-line"
-            fill="none"
-            stroke="black"
-            strokeWidth="0.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
+          {/* Drawn path: a wide soft halo under a crisp hairline core
+              (stroke colours/effects come from the theme CSS) */}
+          <path d={generatePath()} className="drawn-line-halo" />
+          <path d={generatePath()} className="drawn-line" />
           {/* Preview line during dragging */}
-          <path
-            d={generatePreviewPath()}
-            className="preview-line"
-            fill="none"
-            stroke="rgba(0, 0, 0, 0.4)"
-            strokeWidth="0.6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeDasharray="2 2"
-          />
+          <path d={generatePreviewPath()} className="preview-line" />
+          {/* Success: neon energy flows through the figure from the last
+              touched node. pathLength=100 normalises the geometry so the
+              CSS dash animations work in percentages. */}
+          {isSuccess && (
+            <>
+              <path d={generateEnergyPath()} className="energy-trail" pathLength={100} />
+              <path d={generateEnergyPath()} className="energy-head" pathLength={100} />
+            </>
+          )}
         </svg>
 
         {/* Interactive Points */}
@@ -307,10 +383,29 @@ const PatternGrid: React.FC<PatternGridProps> = ({ onPatternSuccess }) => {
                 top: `${point.y}%`,
                 left: `${point.x}%`,
                 cursor: 'pointer',
-              }}
-            />
+                // Each node ignites the moment the energy head reaches it
+                ...(ignitionDelays && point.id in ignitionDelays
+                  ? { '--ignite-delay': `${Math.round(ignitionDelays[point.id] * ENERGY_FILL_MS)}ms` }
+                  : {}),
+              } as React.CSSProperties}
+            >
+              {/* Discreet order guide - fades out once the node is reached */}
+              <span className="pattern-point__num" aria-hidden="true">
+                {NODE_ORDER[point.id]}
+              </span>
+            </div>
           );
         })}
+
+        {/* Idle hint: a finger sliding from node 1 to node 2 */}
+        {showHint && (
+          <div className="pattern-hint" aria-hidden="true">
+            <span className="pattern-hint__touch" />
+            <svg className="pattern-hint__hand" viewBox="0 0 24 24">
+              <path d="M9 11.24V7.5C9 6.12 10.12 5 11.5 5S14 6.12 14 7.5v3.74c1.21-.81 2-2.18 2-3.74C16 5.01 13.99 3 11.5 3S7 5.01 7 7.5c0 1.56.79 2.93 2 3.74zm9.84 4.63l-4.54-2.26c-.17-.07-.35-.11-.54-.11H13v-6c0-.83-.67-1.5-1.5-1.5S10 6.67 10 7.5v10.74l-3.43-.72c-.08-.01-.15-.03-.24-.03-.31 0-.59.13-.79.33l-.79.8 4.94 4.94c.27.27.65.44 1.06.44h6.79c.75 0 1.33-.55 1.44-1.28l.75-5.27c.01-.07.02-.14.02-.2 0-.62-.38-1.16-.91-1.38z" />
+            </svg>
+          </div>
+        )}
 
         {/* Reset Button */}
         <button
