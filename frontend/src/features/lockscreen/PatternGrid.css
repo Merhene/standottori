@@ -1,4 +1,6 @@
-/* PatternGrid.css - Styling for the graphical unlock screen pattern grid */
+/* PatternGrid.css - Styling for the graphical unlock screen pattern grid
+   Dark mode: the pattern is drawn as neon light (brand magenta).
+   Light mode: the pattern is drawn as ink on a mineral surface. */
 
 .full-screen {
   width: 100vw;
@@ -6,64 +8,127 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  /* Fallback if PrimeFlex doesn't load */
+  /* Leave headroom for the brand mark above the pattern */
+  padding-top: 10vh;
+  box-sizing: border-box;
 }
 
 .pattern-container {
   position: relative;
-  /* Responsive sizing based on viewport */
-  width: clamp(250px, 70vw, 500px);
-  height: clamp(250px, 70vh, 500px);
-  /* Keep the smaller dimension to maintain square */
   width: min(clamp(250px, 70vw, 500px), clamp(250px, 70vh, 500px));
   height: min(clamp(250px, 70vw, 500px), clamp(250px, 70vh, 500px));
-  /* Ensure no overflow on any screen size */
   max-width: 90vw;
   max-height: 90vh;
-  border: 2px solid transparent; /* keeps success/error border colours from shifting the layout */
 }
+
+/* ---------- Points ----------
+   A generous invisible hit area around a tiny solid dot.
+   The order number sits OUTSIDE the dot, on the outward side of the figure,
+   and fades away once the node is connected. */
 
 .pattern-point {
   position: absolute;
-  /* Responsive point size */
-  width: clamp(16px, 4vw, 24px);
-  height: clamp(16px, 4vw, 24px);
-  background-color: #ff0000;
-  border-radius: 50%;
+  width: clamp(36px, 9vw, 48px);
+  height: clamp(36px, 9vw, 48px);
   transform: translate(-50%, -50%);
-  /* Smooth transitions for future interactions */
-  transition: all 0.2s ease;
-  /* Make sure points are visible */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
   z-index: 10;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-/* Mobile-specific adjustments */
-@media (max-width: 768px) {
-  .pattern-container {
-    width: clamp(200px, 80vw, 350px);
-    height: clamp(200px, 80vw, 350px);
-  }
-  
-  .pattern-point {
-    width: clamp(14px, 5vw, 20px);
-    height: clamp(14px, 5vw, 20px);
-  }
+/* The dot itself: tiny, solid, always visible */
+.pattern-point::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Large screen adjustments */
-@media (min-width: 1200px) {
-  .pattern-container {
-    width: clamp(400px, 50vw, 600px);
-    height: clamp(400px, 50vw, 600px);
-  }
-  
-  .pattern-point {
-    width: clamp(20px, 3vw, 28px);
-    height: clamp(20px, 3vw, 28px);
-  }
+/* Discreet order number, floated outside the dot */
+.pattern-point__num {
+  position: absolute;
+  font-size: 10px;
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: 0.05em;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
 }
 
-/* SVG overlay for drawing lines */
+/* Each number sits on the outward side of the figure so it never
+   collides with the drawn lines (point layout: a top, b/c right,
+   d bottom, e/f left) */
+.pattern-point--a .pattern-point__num {
+  bottom: 100%;
+  left: 50%;
+  transform: translate(-50%, -2px);
+}
+
+.pattern-point--b .pattern-point__num,
+.pattern-point--c .pattern-point__num {
+  left: 100%;
+  top: 50%;
+  transform: translate(2px, -50%);
+}
+
+.pattern-point--d .pattern-point__num {
+  top: 100%;
+  left: 50%;
+  transform: translate(-50%, 2px);
+}
+
+.pattern-point--e .pattern-point__num,
+.pattern-point--f .pattern-point__num {
+  right: 100%;
+  top: 50%;
+  transform: translate(-2px, -50%);
+}
+
+.dark .pattern-point::after { background-color: rgba(255, 255, 255, 0.4); }
+.dark .pattern-point__num { color: rgba(255, 255, 255, 0.35); }
+
+.light .pattern-point::after { background-color: rgba(23, 22, 23, 0.4); }
+.light .pattern-point__num { color: rgba(23, 22, 23, 0.4); }
+
+.dark .pattern-point:hover::after { background-color: rgba(255, 255, 255, 0.75); }
+.light .pattern-point:hover::after { background-color: rgba(23, 22, 23, 0.75); }
+
+/* Reached: the dot brightens, the number retires.
+   While drawing the light stays white - the neon is earned by finishing. */
+.pattern-point.selected .pattern-point__num { opacity: 0; }
+
+.dark .pattern-point.selected::after {
+  background-color: #ffffff;
+  transform: scale(1.3);
+}
+
+.light .pattern-point.selected::after {
+  background-color: #171617;
+  transform: scale(1.3);
+}
+
+/* First node again: quiet pulse inviting to close the loop */
+.pattern-point.can-close::after {
+  animation: dotPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%, 100% { transform: scale(1.3); }
+  50% { transform: scale(1.9); }
+}
+
+/* ---------- Lines ---------- */
+
 .drawing-overlay {
   position: absolute;
   top: 0;
@@ -72,37 +137,297 @@
   height: 100%;
   pointer-events: none;
   z-index: 5;
+  overflow: visible;
 }
 
+/* Crisp hairline core over a wide soft halo - segments are pre-trimmed in
+   the TSX so they stop at the node rings instead of stabbing through them */
 .drawn-line {
-  stroke: #000;
-  stroke-width: 0.8;
   fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  stroke-linecap: butt;
+  stroke-width: 0.4;
+  transition: stroke 0.3s ease;
 }
+
+.drawn-line-halo {
+  fill: none;
+  stroke-linecap: butt;
+  stroke-width: 1.4;
+}
+
+.dark .drawn-line { stroke: rgba(255, 255, 255, 0.92); }
+.dark .drawn-line-halo { stroke: rgba(255, 255, 255, 0.09); }
+
+.light .drawn-line { stroke: rgba(23, 22, 23, 0.9); }
+.light .drawn-line-halo { stroke: rgba(23, 22, 23, 0.07); }
 
 .preview-line {
-  stroke: rgba(0, 0, 0, 0.4);
-  stroke-width: 0.6;
+  fill: none;
+  stroke-linecap: butt;
+  stroke-width: 0.35;
+  stroke-dasharray: 1.4 2.1;
+}
+
+.dark .preview-line {
+  stroke: rgba(255, 255, 255, 0.3);
+}
+
+.light .preview-line {
+  stroke: rgba(23, 22, 23, 0.35);
+}
+
+/* ---------- Idle hint ----------
+   After a few seconds of inactivity a finger demonstrates the gesture:
+   it slides along the first segment of the pattern (node 1 -> node 2),
+   then fades and repeats. Pure CSS loop; removed as soon as the user
+   touches a node. */
+
+.pattern-hint {
+  position: absolute;
+  left: 50%;
+  top: 5%;
+  width: 0;
+  height: 0;
+  z-index: 15;
+  pointer-events: none;
+  opacity: 0;
+  animation: hintSlide 3.2s ease-in-out infinite;
+  animation-delay: 0.2s;
+}
+
+/* Touch halo under the fingertip */
+.pattern-hint__touch {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.dark .pattern-hint__touch {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.light .pattern-hint__touch {
+  background: rgba(23, 22, 23, 0.06);
+  border: 1px solid rgba(23, 22, 23, 0.3);
+}
+
+/* Pointing hand, fingertip anchored on the centre of the touch halo */
+.pattern-hint__hand {
+  position: absolute;
+  left: -14px;
+  top: -5px;
+  width: 30px;
+  height: 30px;
+}
+
+.dark .pattern-hint__hand path { fill: rgba(255, 255, 255, 0.85); }
+.light .pattern-hint__hand path { fill: rgba(23, 22, 23, 0.8); }
+
+/* Node 1 sits at (50%, 5%), node 2 at (85%, 70%): fade in on the first
+   node, glide to the second, fade out, pause, repeat */
+@keyframes hintSlide {
+  0% { left: 50%; top: 5%; opacity: 0; }
+  12% { left: 50%; top: 5%; opacity: 1; }
+  62% { left: 85%; top: 70%; opacity: 1; }
+  76% { left: 85%; top: 70%; opacity: 0; }
+  100% { left: 85%; top: 70%; opacity: 0; }
+}
+
+/* ---------- Validation states ---------- */
+
+/* Success: neon energy flows through the figure like liquid light in a tube.
+   Both paths share pathLength=100, so dash values are percentages of the
+   travel. Keep the 1.5s duration in sync with ENERGY_FILL_MS (PatternGrid.tsx). */
+
+/* The illuminated trail left behind the moving head */
+.energy-trail {
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-dasharray: 2 2;
+  stroke-width: 1;
+  stroke-dasharray: 100 100;
+  stroke-dashoffset: 100;
 }
 
-/* Container validation states */
-.pattern-container.success {
-  border-color: #00ff00;
-  box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+.dark .energy-trail {
+  stroke: #ffffff;
+  filter:
+    drop-shadow(0 0 2px #ffffff)
+    drop-shadow(0 0 7px #ff2ec8)
+    drop-shadow(0 0 18px #ff00aa)
+    drop-shadow(0 0 40px rgba(192, 0, 128, 0.8));
+  animation: energyFill 1.5s ease-in-out forwards;
 }
 
-.pattern-container.error {
-  border-color: #ff0000;
-  box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+/* Bright leading edge: a short dash whose front edge matches the trail's
+   reveal front for every progress value (offset = 6 - 100p vs 100 - 100p) */
+.energy-head {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.4;
+  stroke-dasharray: 6 200;
+  stroke-dashoffset: 6;
 }
 
-/* Shake animation for errors */
+.dark .energy-head {
+  stroke: #ffffff;
+  filter:
+    drop-shadow(0 0 3px #ffffff)
+    drop-shadow(0 0 10px #ffffff)
+    drop-shadow(0 0 22px #ff2ec8);
+  animation: energyHeadTravel 1.5s ease-in-out forwards;
+}
+
+@keyframes energyFill {
+  from { stroke-dashoffset: 100; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes energyHeadTravel {
+  0% { stroke-dashoffset: 6; opacity: 1; }
+  88% { opacity: 1; }
+  100% { stroke-dashoffset: -94; opacity: 0; }
+}
+
+/* Light mode has no neon: the trail simply confirms in ink */
+.light .energy-trail {
+  stroke: #000000;
+  animation: energyFill 1.5s ease-in-out forwards;
+}
+
+.light .energy-head {
+  display: none;
+}
+
+/* ---------- Reveal flare ----------
+   The lit figure does not shrink away: its strokes thicken and blaze
+   while the logo brightens in the exact same box, so the pattern
+   appears to morph into the logo. */
+
+.dark .pattern-stage--reveal .energy-trail {
+  stroke-dashoffset: 0;
+  /* builds directly into the flash peak (~0.6s) */
+  animation: trailFlare 0.7s ease-in forwards;
+}
+
+@keyframes trailFlare {
+  0% {
+    stroke-width: 1;
+    filter:
+      drop-shadow(0 0 2px #ffffff)
+      drop-shadow(0 0 7px #ff2ec8)
+      drop-shadow(0 0 18px #ff00aa)
+      drop-shadow(0 0 40px rgba(192, 0, 128, 0.8));
+  }
+  100% {
+    stroke-width: 3.2;
+    filter:
+      drop-shadow(0 0 4px #ffffff)
+      drop-shadow(0 0 14px #ff2ec8)
+      drop-shadow(0 0 34px #ff00aa)
+      drop-shadow(0 0 70px #c00080)
+      drop-shadow(0 0 120px rgba(179, 7, 179, 0.9));
+  }
+}
+
+.dark .pattern-stage--reveal .energy-head {
+  display: none;
+}
+
+.dark .pattern-stage--reveal .pattern-point.selected::after {
+  background-color: #ff2ec8;
+  animation: pointFlare 0.7s ease-in forwards;
+}
+
+@keyframes pointFlare {
+  to {
+    transform: scale(1.9);
+    box-shadow:
+      0 0 14px rgba(255, 255, 255, 0.95),
+      0 0 34px rgba(255, 46, 200, 1),
+      0 0 70px rgba(255, 0, 170, 0.8);
+  }
+}
+
+/* Flash that masks the pattern->logo swap: fast attack to peak brightness,
+   short hold while the swap happens underneath, slow decay unveiling the logo */
+.reveal-flash {
+  opacity: 0;
+  animation: revealFlash 2.2s ease-in-out forwards;
+}
+
+@keyframes revealFlash {
+  0% { opacity: 0; }
+  28% { opacity: 1; }
+  46% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Node dots ignite when the energy head passes through (delay set inline) */
+.dark .pattern-container.success .pattern-point.selected::after {
+  animation: pointIgnite 0.4s ease-out forwards;
+  animation-delay: var(--ignite-delay, 0ms);
+}
+
+@keyframes pointIgnite {
+  0% {
+    background-color: #ffffff;
+    box-shadow: none;
+  }
+  40% {
+    background-color: #ffffff;
+    box-shadow:
+      0 0 12px rgba(255, 255, 255, 0.95),
+      0 0 30px rgba(255, 46, 200, 0.9);
+  }
+  100% {
+    background-color: #ff2ec8;
+    box-shadow:
+      0 0 8px rgba(255, 255, 255, 0.8),
+      0 0 20px rgba(255, 46, 200, 0.95),
+      0 0 44px rgba(255, 0, 170, 0.65);
+  }
+}
+
+.light .pattern-container.success .drawn-line {
+  stroke: #000000;
+}
+
+.pattern-container.error .drawn-line {
+  transition: none;
+}
+
+.dark .pattern-container.error .drawn-line {
+  stroke: #ff5c5c;
+}
+
+.dark .pattern-container.error .drawn-line-halo {
+  stroke: rgba(255, 60, 60, 0.12);
+}
+
+.light .pattern-container.error .drawn-line {
+  stroke: #b3261e;
+}
+
+.light .pattern-container.error .drawn-line-halo {
+  stroke: rgba(179, 38, 30, 0.1);
+}
+
+.dark .pattern-container.error .pattern-point.selected::after {
+  background-color: #ff5c5c;
+  box-shadow: 0 0 10px rgba(255, 60, 60, 0.6);
+}
+
+.light .pattern-container.error .pattern-point.selected::after {
+  background-color: #b3261e;
+}
+
 .pattern-container.shake {
   animation: shake 0.6s ease-in-out;
 }
@@ -113,74 +438,70 @@
   20%, 40%, 60%, 80% { transform: translateX(5px); }
 }
 
-/* Point states */
-.pattern-point {
-  cursor: pointer;
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-}
+/* ---------- Buttons & messages ---------- */
 
-.pattern-point.selected {
-  background-color: #00ff00;
-  box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
-}
-
-.pattern-point.can-close {
-  background-color: #ffaa00;
-  box-shadow: 0 0 10px rgba(255, 170, 0, 0.7);
-  animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-  0% { transform: translate(-50%, -50%) scale(1); }
-  50% { transform: translate(-50%, -50%) scale(1.2); }
-  100% { transform: translate(-50%, -50%) scale(1); }
-}
-
-/* Reset button */
 .reset-button {
   position: absolute;
-  bottom: -50px;
+  bottom: -48px;
   left: 50%;
   transform: translateX(-50%);
-  padding: 8px 16px;
-  background-color: #ff4444;
-  color: white;
-  border: none;
-  border-radius: 4px;
+  padding: 8px 22px;
+  background: transparent;
+  border: 1px solid;
+  border-radius: 999px;
   cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s ease;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
   z-index: 20;
 }
 
-.reset-button:hover:not(:disabled) {
-  background-color: #ff6666;
-  transform: translateX(-50%) scale(1.05);
+.dark .reset-button {
+  color: rgba(255, 255, 255, 0.75);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.light .reset-button {
+  color: rgba(23, 22, 23, 0.8);
+  border-color: rgba(23, 22, 23, 0.3);
+}
+
+.dark .reset-button:hover:not(:disabled) {
+  color: #ffffff;
+  border-color: #ff2ec8;
+}
+
+.light .reset-button:hover:not(:disabled) {
+  color: #171617;
+  border-color: #171617;
 }
 
 .reset-button:disabled {
-  background-color: #cccccc;
+  opacity: 0.25;
   cursor: not-allowed;
 }
 
-/* Error message */
 .error-message {
   position: absolute;
-  bottom: -60px;
+  bottom: -80px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 14px;
-  color: #ff0000;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: 1px solid #ff0000;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  background: transparent;
+  padding: 4px 8px;
   white-space: nowrap;
   z-index: 25;
   animation: fadeIn 0.3s ease-in-out;
+}
+
+.dark .error-message {
+  color: #ff8080;
+}
+
+.light .error-message {
+  color: #b3261e;
 }
 
 @keyframes fadeIn {
@@ -188,50 +509,88 @@
   to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
-/* Discreet accessible skip link (keyboard / assistive tech alternative) */
+/* Discreet accessible skip link (keyboard / assistive tech alternative).
+   Bottom-right corner: keeps the centre free for the error message. */
 .skip-button {
   position: fixed;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 12px;
+  right: 16px;
   padding: 6px 12px;
   background: transparent;
   border: none;
-  color: #888;
   font-size: 12px;
   text-decoration: underline;
   cursor: pointer;
-  opacity: 0.6;
+  opacity: 0.5;
   transition: opacity 0.2s ease;
   z-index: 30;
 }
+
+.dark .skip-button { color: rgba(255, 255, 255, 0.6); }
+.light .skip-button { color: rgba(23, 22, 23, 0.6); }
 
 .skip-button:hover,
 .skip-button:focus-visible {
   opacity: 1;
 }
 
-/* Individual point positioning - now handled by inline styles in React */
-.pattern-point--a {
-  /* Position handled by React inline styles */
+/* ---------- Responsive sizing ---------- */
+
+@media (max-width: 768px) {
+  .pattern-container {
+    width: clamp(200px, 80vw, 350px);
+    height: clamp(200px, 80vw, 350px);
+  }
+
+  .pattern-point::after {
+    width: 6px;
+    height: 6px;
+  }
+
+  .pattern-point__num {
+    font-size: 9px;
+  }
 }
 
-.pattern-point--b {
-  /* Position handled by React inline styles */
+@media (min-width: 1200px) {
+  .pattern-container {
+    width: clamp(400px, 50vw, 600px);
+    height: clamp(400px, 50vw, 600px);
+  }
+
+  .pattern-point::after {
+    width: 8px;
+    height: 8px;
+  }
 }
 
-.pattern-point--c {
-  /* Position handled by React inline styles */
-}
+@media (prefers-reduced-motion: reduce) {
+  .pattern-point.can-close::after,
+  .pattern-container.shake,
+  .pattern-hint,
+  .energy-trail,
+  .energy-head,
+  .dark .pattern-container.success .pattern-point.selected::after {
+    animation: none;
+  }
 
-.pattern-point--d {
-  /* Position handled by React inline styles */
-}
+  /* Show the final lit state directly */
+  .energy-trail {
+    stroke-dashoffset: 0;
+  }
 
-.pattern-point--e {
-  /* Position handled by React inline styles */
-}
+  .energy-head {
+    display: none;
+  }
 
-.pattern-point--f {
-  /* Position handled by React inline styles */
+  /* Static hint at the starting node instead of the sliding gesture */
+  .pattern-hint {
+    left: 50%;
+    top: 5%;
+    opacity: 0.8;
+  }
+
+  .dark .pattern-container.success .pattern-point.selected::after {
+    background-color: #ff2ec8;
+  }
 }

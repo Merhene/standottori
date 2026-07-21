@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useTheme } from '../hooks/useTheme';
+import LockScreen from '../features/lockscreen/LockScreen';
+
+/* TEMP: lockscreen test rig - overlay fade must match App.tsx */
+const OVERLAY_FADE_MS = 900;
 
 const NEON_DARK = [
   'drop-shadow(0 0 4px #fff)',
@@ -29,7 +33,23 @@ export default function Playground() {
   const [revealed, setRevealed] = useState(false);
   const [entranceComplete, setEntranceComplete] = useState(false);
 
+  // TEMP: lockscreen test rig. The lockscreen always shows here (storage is
+  // never touched) and the playground entrance waits for it to dissolve.
+  const [locked, setLocked] = useState(true);
+  const [overlayGone, setOverlayGone] = useState(false);
+  const [handoff, setHandoff] = useState(false);
+
+  const dismissLock = () => {
+    setLocked(false);
+    // The lockscreen morph already settled its logo onto our logo's exact
+    // geometry: light ours up immediately so the crossfade never dips to black
+    setHandoff(true);
+    setRevealed(true);
+    window.setTimeout(() => setOverlayGone(true), OVERLAY_FADE_MS);
+  };
+
   useEffect(() => {
+    if (locked || revealed) return;
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReduced) {
       setRevealed(true);
@@ -38,7 +58,7 @@ export default function Playground() {
     }
     const startId = window.setTimeout(() => setRevealed(true), 400);
     return () => window.clearTimeout(startId);
-  }, []);
+  }, [locked, revealed]);
 
   useEffect(() => {
     if (!revealed || entranceComplete) return;
@@ -49,13 +69,31 @@ export default function Playground() {
 
   const logoTransition = entranceComplete
     ? undefined
-    : 'opacity 2.6s ease-in-out 0.15s';
+    : handoff
+      ? `opacity ${OVERLAY_FADE_MS}ms ease-out`
+      : 'opacity 2.6s ease-in-out 0.15s';
 
   const stageClass = !revealed
     ? ''
     : entranceComplete
       ? 'playground-stage-ready'
       : 'playground-stage-awake';
+
+  // TEMP: lockscreen overlay, same crossfade as the real one in App.tsx
+  const lockOverlay = !overlayGone && (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 100,
+        opacity: locked ? 1 : 0,
+        transition: `opacity ${OVERLAY_FADE_MS}ms ease-out`,
+        pointerEvents: locked ? 'auto' : 'none',
+      }}
+    >
+      <LockScreen onComplete={dismissLock} />
+    </div>
+  );
 
   if (!isDark) {
     return (
@@ -72,6 +110,7 @@ export default function Playground() {
             }}
           />
         </div>
+        {lockOverlay}
       </div>
     );
   }
@@ -97,6 +136,7 @@ export default function Playground() {
           }}
         />
       </div>
+      {lockOverlay}
     </div>
   );
 }

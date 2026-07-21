@@ -17,6 +17,7 @@ import GalleryFlash from './pages/gallery/GalleryFlash';
 import ThemeProvider from './context/ThemeProvider';
 import AuthProvider from './context/AuthProvider';
 import RequireAdmin from './components/admin/RequireAdmin';
+import { UnlockContext, OVERLAY_FADE_MS } from './hooks/useUnlock';
 import { isSupabaseConfigured } from './lib/supabase';
 import { getSiteSettings } from './lib/content';
 
@@ -42,34 +43,54 @@ function AdminFallback() {
   );
 }
 
+/** Auto-dismiss the lockscreen if the visitor doesn't interact */
+const LOCKSCREEN_TIMEOUT_MS = 20000;
+
 function App() {
   const [unlocked, setUnlocked] = useState<boolean>(
     () => localStorage.getItem(STORAGE_KEY) === '1'
   );
+  // The overlay stays mounted during its fade-out, then unmounts entirely
+  const [overlayGone, setOverlayGone] = useState<boolean>(unlocked);
 
   // The artist can disable the lock screen from the admin settings
   useEffect(() => {
     if (unlocked || !isSupabaseConfigured) return;
     getSiteSettings()
       .then((settings) => {
-        if (!settings.lockscreen_enabled) setUnlocked(true);
+        if (!settings.lockscreen_enabled) dismissLockscreen(false);
       })
       .catch(() => {
         // Settings unavailable: keep the lock screen (default behaviour)
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unlocked]);
 
-  const handleUnlock = () => {
-    localStorage.setItem(STORAGE_KEY, '1');
+  const dismissLockscreen = (remember: boolean) => {
+    if (remember) localStorage.setItem(STORAGE_KEY, '1');
     setUnlocked(true);
+    window.setTimeout(() => setOverlayGone(true), OVERLAY_FADE_MS);
   };
+
+  // Timeout: visitors who don't play the pattern still reach the site.
+  // Not remembered, so they get another chance at the pattern next visit.
+  useEffect(() => {
+    if (unlocked) return;
+    const id = window.setTimeout(() => dismissLockscreen(false), LOCKSCREEN_TIMEOUT_MS);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [unlocked]);
 
   return (
     <ThemeProvider>
       <AuthProvider>
-        {unlocked ? (
-          <div className="animate-fade-zoom-out">
-            <BrowserRouter>
+        <UnlockContext.Provider value={{ unlocked }}>
+        {/* The app always renders underneath: unlocking crossfades into it
+            with no route change. The homepage logo lights up in the exact
+            spot where the lockscreen reveal left it (see Home.tsx), so the
+            app itself must not move - no zoom entrance here. */}
+        <div>
+          <BrowserRouter>
               <Suspense fallback={<AdminFallback />}>
                 <Routes>
                   <Route path="/" element={<Layout />}>
@@ -103,11 +124,25 @@ function App() {
                   </Route>
                 </Routes>
               </Suspense>
-            </BrowserRouter>
+          </BrowserRouter>
+        </div>
+
+        {/* Lockscreen overlay: dissolves into the page underneath on unlock */}
+        {!overlayGone && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 100,
+              opacity: unlocked ? 0 : 1,
+              transition: `opacity ${OVERLAY_FADE_MS}ms ease-out`,
+              pointerEvents: unlocked ? 'none' : 'auto',
+            }}
+          >
+            <LockScreen onComplete={() => dismissLockscreen(true)} />
           </div>
-        ) : (
-          <LockScreen onComplete={handleUnlock} />
         )}
+        </UnlockContext.Provider>
       </AuthProvider>
     </ThemeProvider>
   );
