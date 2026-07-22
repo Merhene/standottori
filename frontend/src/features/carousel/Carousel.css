@@ -1,6 +1,6 @@
 /* Carousel slide transitions.
-   The incoming slide covers the previous one: whole from the top, whole
-   from the bottom, or cut in two halves meeting in the middle.
+   The incoming slide covers the previous one: whole from any edge, or cut
+   in two halves sliding in from opposite edges and meeting in the middle.
    Keep the 0.7s duration in sync with TRANSITION_MS (Carousel.tsx). */
 
 .carousel-slide--in-top {
@@ -11,10 +11,18 @@
   animation: carouselInBottom 0.7s cubic-bezier(0.65, 0, 0.35, 1) both;
 }
 
-/* Split: the same slide rendered twice, each copy clipped to one half.
+.carousel-slide--in-left {
+  animation: carouselInLeft 0.7s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+.carousel-slide--in-right {
+  animation: carouselInRight 0.7s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+/* Splits: the same slide rendered twice, each copy clipped to one half.
    clip-path applies before transform, so each half only needs to travel
-   its own height (50%) to land exactly in place - the two bands slide
-   in together and meet in the middle. */
+   its own size (50%) to land exactly in place - the two bands slide in
+   together and meet in the middle. */
 .carousel-slide--split-top {
   clip-path: inset(0 0 50% 0);
   animation: carouselInTopHalf 0.7s cubic-bezier(0.65, 0, 0.35, 1) both;
@@ -23,6 +31,16 @@
 .carousel-slide--split-bottom {
   clip-path: inset(50% 0 0 0);
   animation: carouselInBottomHalf 0.7s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+.carousel-slide--split-left {
+  clip-path: inset(0 50% 0 0);
+  animation: carouselInLeftHalf 0.7s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+.carousel-slide--split-right {
+  clip-path: inset(0 0 0 50%);
+  animation: carouselInRightHalf 0.7s cubic-bezier(0.65, 0, 0.35, 1) both;
 }
 
 .carousel-slide--fade {
@@ -39,6 +57,16 @@
   to { transform: translateY(0); }
 }
 
+@keyframes carouselInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes carouselInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
 @keyframes carouselInTopHalf {
   from { transform: translateY(-50%); }
   to { transform: translateY(0); }
@@ -47,6 +75,16 @@
 @keyframes carouselInBottomHalf {
   from { transform: translateY(50%); }
   to { transform: translateY(0); }
+}
+
+@keyframes carouselInLeftHalf {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes carouselInRightHalf {
+  from { transform: translateX(50%); }
+  to { transform: translateX(0); }
 }
 
 @keyframes carouselFade {
