@@ -5,8 +5,11 @@
 
 @theme {
   --color-dark-bg: #171617;
-  --color-dark-text: #eae7d3;
-  --color-light-bg: #f4edde;
+  /* Cool mineral white — no warm/yellow cast on ink black */
+  --color-dark-text: #f0eeec;
+  --color-dark-text-soft: #c9c6c3;
+  --color-brand-magenta: #ff2ec8;
+  --color-light-bg: #fdfcfb;
   --color-light-text: #171617;
 }
 
@@ -21,7 +24,7 @@
   /* Backgrounds for theme classes */
   .dark {
     background-color: #171617;
-    color: #f5f1e8;
+    color: #f0eeec;
   }
   .light {
     background-color: #f5f1e8;
@@ -50,9 +53,51 @@
   }
 }
 
-/* --- Header link colours --- */
+/* --- Header --- */
 .light .prime-header-link { color: #171617; }
-.dark .prime-header-link { color: #f5f1e8; }
+
+.dark .prime-header-link {
+  color: #f0eeec;
+  transition: color 0.25s ease, opacity 0.25s ease;
+}
+
+/* Solid dark bar: same ink as the page, quiet edge, no floating black slab */
+.dark .prime-header--solid {
+  background-color: #171617 !important;
+  border-bottom: 1px solid rgba(240, 238, 236, 0.07);
+  box-shadow: none;
+}
+
+/* Magenta hover is desktop-only (burger / nav / lang).
+   Mobile & tablet keep a calm white chrome — no pink on touch. */
+@media (min-width: 1024px) {
+  .dark .prime-header--solid .prime-header-link:hover,
+  .dark .prime-header--solid button.prime-header-link:hover {
+    color: #ff2ec8;
+    opacity: 1;
+  }
+}
+
+.dark .prime-header--menu {
+  background: #171617 !important;
+  border-bottom: 1px solid rgba(240, 238, 236, 0.08);
+}
+
+.dark .prime-header--menu .prime-header-link,
+.dark .prime-header--menu button.prime-header-link {
+  color: #f0eeec;
+}
+
+.dark .prime-header--menu .prime-header-mobile-item {
+  color: #f0eeec;
+  border-top: 1px solid rgba(240, 238, 236, 0.06);
+  letter-spacing: 0.14em;
+}
+
+.dark .prime-header--menu .prime-header-mobile-item:hover {
+  background: rgba(240, 238, 236, 0.05);
+  opacity: 1;
+}
 
 /* Admin button style */
 .admin-btn {
@@ -73,11 +118,11 @@
 
 .light .admin-btn {
   background-color: #171617;
-  color: #f5f1e8 !important;
+  color: #f0eeec !important;
 }
 
 .dark .admin-btn {
-  background-color: #f5f1e8;
+  background-color: #f0eeec;
   color: #171617 !important;
 }
 
@@ -99,7 +144,7 @@
 }
 
 .dark .admin-breadcrumb-link {
-  color: #f5f1e8 !important;
+  color: #f0eeec !important;
 }
 
 /* Playground dark stage — floor plate stays wide/flat on all breakpoints */

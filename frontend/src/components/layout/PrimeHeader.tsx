@@ -112,14 +112,34 @@ export default function PrimeHeader({
 
   const getDesktopBgColor = () => {
     if (transparent) return 'transparent';
-    return theme === 'dark' ? '#000000' : '#ffffff';
+    return theme === 'dark' ? '#171617' : '#ffffff';
   };
 
   const getMobileBgColor = () => {
-    if (isMenuOpen) return 'rgba(0, 0, 0, 0.85)';
+    if (isMenuOpen) return theme === 'dark' ? '#171617' : 'rgba(0, 0, 0, 0.85)';
     if (transparent) return 'transparent';
-    return theme === 'dark' ? '#000000' : '#ffffff';
+    return theme === 'dark' ? '#171617' : '#ffffff';
   };
+
+  const desktopHeaderClass = [
+    'hidden lg:block sticky top-0 z-10 w-full max-w-full overflow-x-hidden transition-colors duration-300',
+    transparent ? '' : theme === 'dark' ? 'prime-header--solid' : 'shadow-md',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const mobileHeaderClass = [
+    'lg:hidden sticky top-0 z-10 w-full max-w-full overflow-x-hidden transition-colors duration-300',
+    isMenuOpen && theme === 'dark'
+      ? 'prime-header--menu'
+      : transparent
+        ? ''
+        : theme === 'dark'
+          ? 'prime-header--solid'
+          : shadowClass,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const headerTransformStyle = hideOnScroll
     ? {
@@ -135,7 +155,7 @@ export default function PrimeHeader({
     <>
       {/* Desktop Header */}
       <header
-        className={`hidden lg:block sticky top-0 z-10 w-full max-w-full overflow-x-hidden ${transparent ? '' : 'shadow-md'} transition-colors duration-300`}
+        className={desktopHeaderClass}
         style={{ backgroundColor: getDesktopBgColor(), ...headerTransformStyle }}
       >
         <div className="flex w-full items-center justify-between gap-3 px-4 py-3">
@@ -198,7 +218,7 @@ export default function PrimeHeader({
 
       {/* Mobile/Tablet header */}
       <header
-        className={`lg:hidden sticky top-0 z-10 w-full max-w-full overflow-x-hidden ${shadowClass} transition-colors duration-300`}
+        className={mobileHeaderClass}
         style={{ backgroundColor: getMobileBgColor(), ...headerTransformStyle }}
       >
         <div className="flex w-full items-center justify-between gap-2 px-3 py-2">
@@ -252,7 +272,9 @@ export default function PrimeHeader({
               >
                 <button
                   onClick={() => handleNavClick(item.path)}
-                  className={`${navButtonClass} block text-white w-full text-left px-4 py-3`}
+                  className={`${navButtonClass} prime-header-mobile-item block w-full text-left px-4 py-3 ${
+                    theme === 'dark' && isMenuOpen ? '' : 'text-white'
+                  }`}
                 >
                   {item.label}
                 </button>

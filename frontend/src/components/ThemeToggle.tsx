@@ -9,10 +9,10 @@ export default function ThemeToggle({ transparent = false }: ThemeToggleProps) {
   const { theme, toggleTheme } = useTheme();
   const { t } = useTranslation();
   
-  const colorClass = transparent 
-    ? 'text-white drop-shadow-lg' 
-    : '';
-  
+  const colorClass = transparent
+    ? 'text-white drop-shadow-lg'
+    : 'prime-header-link';
+
   return (
     <button
       onClick={toggleTheme}
