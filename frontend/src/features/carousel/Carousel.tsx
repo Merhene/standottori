@@ -21,8 +21,10 @@ interface CarouselProps {
 /** Keep in sync with the animation durations in Carousel.css */
 const TRANSITION_MS = 700;
 
-/** The incoming slide covers the previous one from a random direction */
-const VARIANTS = ['in-top', 'in-bottom', 'split'] as const;
+/** The incoming slide covers the previous one from a random direction:
+    whole from any edge, or cut in two halves meeting in the middle
+    (split-v: top+bottom halves, split-h: left+right halves) */
+const VARIANTS = ['in-top', 'in-bottom', 'in-left', 'in-right', 'split-v', 'split-h'] as const;
 type Variant = (typeof VARIANTS)[number] | 'fade';
 
 function pickVariant(): Variant {
@@ -170,26 +172,32 @@ export default function Carousel({
       );
     }
 
-    // Split: the incoming slide is cut in half - the top half drops in
-    // from above while the bottom half rises from below
-    if (isEntering && variant === 'split') {
+    // Splits: the incoming slide is rendered twice, each copy clipped to
+    // one half - the halves slide in from opposite edges and meet in the
+    // middle (vertical: top+bottom, horizontal: left+right)
+    if (isEntering && (variant === 'split-v' || variant === 'split-h')) {
+      const [firstHalf, secondHalf] =
+        variant === 'split-v'
+          ? ['carousel-slide--split-top', 'carousel-slide--split-bottom']
+          : ['carousel-slide--split-left', 'carousel-slide--split-right'];
       return (
         <div key={index} className="absolute inset-0 z-20" aria-hidden={false}>
-          <div className="absolute inset-0 carousel-slide--split-top">{slide}</div>
-          <div className="absolute inset-0 carousel-slide--split-bottom" aria-hidden="true">
+          <div className={`absolute inset-0 ${firstHalf}`}>{slide}</div>
+          <div className={`absolute inset-0 ${secondHalf}`} aria-hidden="true">
             {slide}
           </div>
         </div>
       );
     }
 
-    const enterClass = isEntering
-      ? variant === 'in-top'
-        ? 'carousel-slide--in-top'
-        : variant === 'in-bottom'
-          ? 'carousel-slide--in-bottom'
-          : 'carousel-slide--fade'
-      : '';
+    const ENTER_CLASSES: Partial<Record<Variant, string>> = {
+      'in-top': 'carousel-slide--in-top',
+      'in-bottom': 'carousel-slide--in-bottom',
+      'in-left': 'carousel-slide--in-left',
+      'in-right': 'carousel-slide--in-right',
+      fade: 'carousel-slide--fade',
+    };
+    const enterClass = isEntering ? ENTER_CLASSES[variant] ?? 'carousel-slide--fade' : '';
 
     return (
       <div
