@@ -40,6 +40,8 @@ export interface SiteInfo {
   youtube_url: string | null;
   tiktok_url: string | null;
   opening_hours: string | null;
+  /** Public intake / booking form the visitor can fill and attach */
+  form_url: string | null;
   updated_at: string;
 }
 

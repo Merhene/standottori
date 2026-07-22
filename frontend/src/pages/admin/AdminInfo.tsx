@@ -14,6 +14,7 @@ const EMPTY_FORM: InfoForm = {
   youtube_url: '',
   tiktok_url: '',
   opening_hours: '',
+  form_url: '',
 };
 
 export default function AdminInfo() {
@@ -33,6 +34,7 @@ export default function AdminInfo() {
           youtube_url: info.youtube_url ?? '',
           tiktok_url: info.tiktok_url ?? '',
           opening_hours: info.opening_hours ?? '',
+          form_url: info.form_url ?? '',
         })
       )
       .catch((error) =>
@@ -170,6 +172,25 @@ export default function AdminInfo() {
                 placeholder="https://tiktok.com/@standottori"
               />
             </div>
+          </div>
+
+          <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 lg:col-span-2">
+            <h2 className="text-xl font-semibold mb-4">Formulaire de demande</h2>
+            <p className="text-sm opacity-60 mb-3">
+              Lien vers le formulaire à remplir (affiché sur la page Contact). Le visiteur pourra
+              l’ouvrir, le remplir, puis le joindre à son message.
+            </p>
+            <label htmlFor="info-form-url" className="block text-sm font-medium mb-1">
+              URL du formulaire
+            </label>
+            <input
+              id="info-form-url"
+              type="url"
+              value={form.form_url ?? ''}
+              onChange={setField('form_url')}
+              className={inputClass}
+              placeholder="https://…"
+            />
           </div>
 
           <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 lg:col-span-2">
