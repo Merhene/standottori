@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
+import { useLocation } from 'react-router-dom';
 import BodyMap from '../features/bodymap/BodyMap';
 import { formatPlacementLines, type SelectedPart } from '../features/bodymap/selection';
+import {
+  flashFilename,
+  type FlashRequestLocationState,
+  type FlashRequestPayload,
+} from '../features/contact/flashRequest';
 import {
   ACCEPT_ATTACHMENTS,
   buildMessageTemplate,
@@ -14,7 +20,7 @@ import {
   type Currency,
 } from '../features/contact/templates';
 import { getSiteInfo } from '../lib/content';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { supabase, isSupabaseConfigured, publicImageUrl } from '../lib/supabase';
 
 type SendState = 'idle' | 'sending' | 'sent' | 'error';
 
@@ -36,6 +42,7 @@ async function fileToBase64(file: File): Promise<string> {
 
 export default function Contact() {
   const { t, i18n } = useTranslation();
+  const location = useLocation();
   const lang = i18n.language.startsWith('fr') ? 'fr' : 'en';
 
   const [name, setName] = useState('');
@@ -48,9 +55,11 @@ export default function Contact() {
   const [placements, setPlacements] = useState<SelectedPart[]>([]);
   const [attachments, setAttachments] = useState<AttachmentFile[]>([]);
   const [attachError, setAttachError] = useState<string | null>(null);
+  const [flashRequest, setFlashRequest] = useState<FlashRequestPayload | null>(null);
   const [formUrl, setFormUrl] = useState<string | null>(null);
   const [sendState, setSendState] = useState<SendState>('idle');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const flashSeededRef = useRef(false);
 
   const zones = useMemo(() => formatPlacementLines(placements, t), [placements, t]);
   const budgetLabel = formatBudget(budget, currency);
@@ -65,6 +74,58 @@ export default function Contact() {
       .catch(() => setFormUrl(null));
   }, []);
 
+  // Seed from flash gallery handoff (once per visit)
+  useEffect(() => {
+    const flash = (location.state as FlashRequestLocationState | null)?.flash;
+    if (!flash || flashSeededRef.current) return;
+    flashSeededRef.current = true;
+
+    setCategory('tattoo');
+    setMessageDirty(false);
+    setFlashRequest(flash);
+  }, [location.state]);
+
+  // Prefetch flash image into a File attachment (same path as manual upload)
+  useEffect(() => {
+    if (!flashRequest) return;
+
+    let cancelled = false;
+    const url = publicImageUrl(flashRequest.storage_path);
+    if (!url) {
+      setAttachError(t('contact.flash_attach_failed'));
+      return;
+    }
+
+    fetch(url)
+      .then((res) => {
+        if (!res.ok) throw new Error('fetch failed');
+        return res.blob();
+      })
+      .then((blob) => {
+        if (cancelled) return;
+        const filename = flashFilename(flashRequest.storage_path, flashRequest.id);
+        const file = new File([blob], filename, {
+          type: blob.type || 'image/jpeg',
+        });
+        if (file.size > MAX_ATTACHMENT_BYTES) {
+          setAttachError(t('contact.attach_too_large', { name: file.name, max: '4' }));
+          return;
+        }
+        setAttachments((prev) => {
+          if (prev.some((a) => a.id === `flash-${flashRequest.id}`)) return prev;
+          return [{ id: `flash-${flashRequest.id}`, file }, ...prev].slice(0, MAX_ATTACHMENTS);
+        });
+        setAttachError(null);
+      })
+      .catch(() => {
+        if (!cancelled) setAttachError(t('contact.flash_attach_failed'));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [flashRequest, t]);
+
   // Keep the starter message in sync until the visitor edits it
   useEffect(() => {
     if (messageDirty) return;
@@ -74,9 +135,10 @@ export default function Contact() {
         zones,
         budgetLabel: showBudget ? budgetLabel : '',
         lang,
+        flash: flashRequest ? { title: flashRequest.title } : null,
       })
     );
-  }, [category, zones, budgetLabel, showBudget, lang, messageDirty]);
+  }, [category, zones, budgetLabel, showBudget, lang, messageDirty, flashRequest]);
 
   const handleCategoryChange = (next: ContactCategory) => {
     setCategory(next);
@@ -124,6 +186,7 @@ export default function Contact() {
     setCurrency('EUR');
     setPlacements([]);
     setAttachments([]);
+    setFlashRequest(null);
     setMessageDirty(false);
     setAttachError(null);
     setMessage(
@@ -338,6 +401,9 @@ export default function Contact() {
             <div>
               <p className="block text-sm font-semibold mb-2">{t('contact.attachments')}</p>
               <p className="text-xs opacity-50 mb-2 m-0">{t('contact.attachments_hint')}</p>
+              {flashRequest && (
+                <p className="text-xs mb-2 m-0 opacity-70">{t('contact.flash_attached')}</p>
+              )}
 
               <input
                 ref={fileInputRef}

@@ -1,93 +1,150 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import './Gallery.css';
 
 interface GallerySectionProps {
   image: string;
   title: string;
   link: string;
+  onSelect: (payload: ExpandPayload) => void;
+  dismissed: boolean;
 }
 
-function GallerySection({ image, title, link }: GallerySectionProps) {
-  const [isHovered, setIsHovered] = useState(false);
+export interface ExpandPayload {
+  image: string;
+  title: string;
+  link: string;
+  rect: DOMRect;
+}
+
+type ExpandPhase = 'start' | 'fill' | 'plunge' | 'void';
+
+function GallerySection({ image, title, link, onSelect, dismissed }: GallerySectionProps) {
+  const panelRef = useRef<HTMLButtonElement>(null);
 
   return (
-    <Link
-      to={link}
-      className="block relative overflow-hidden no-underline"
-      style={{ 
-        flex: 1,
-        width: '100%',
-        height: '100%',
+    <button
+      ref={panelRef}
+      type="button"
+      className={`gallery-hub__panel ${dismissed ? 'is-dismissed' : ''}`}
+      aria-label={title}
+      onClick={() => {
+        const el = panelRef.current;
+        if (!el) return;
+        onSelect({ image, title, link, rect: el.getBoundingClientRect() });
       }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Background image */}
-      <img
-        src={image}
-        alt={title}
-        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500"
-        style={{
-          transform: isHovered ? 'scale(1.05)' : 'scale(1)',
-        }}
-      />
-
-      {/* Dark overlay on hover */}
-      <div
-        className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 pointer-events-none"
-        style={{
-          backgroundColor: 'rgba(0, 0, 0, 0.85)',
-          opacity: isHovered ? 1 : 0,
-          zIndex: 1,
-        }}
-      />
-
-      {/* Title - appears on hover */}
-      <div
-        className="absolute top-0 left-0 w-full h-full flex items-center justify-center transition-all duration-300 pointer-events-none"
-        style={{
-          opacity: isHovered ? 1 : 0,
-          zIndex: 2,
-        }}
-      >
-        <h2
-          className="text-white text-5xl md:text-7xl lg:text-8xl font-bold tracking-widest uppercase drop-shadow-lg transition-transform duration-300"
-          style={{
-            transform: isHovered ? 'translateY(0)' : 'translateY(20px)',
-          }}
-        >
-          {title}
-        </h2>
+      <img className="gallery-hub__image" src={image} alt="" draggable={false} />
+      <div className="gallery-hub__scrim" aria-hidden="true" />
+      <div className="gallery-hub__label">
+        <h2 className="gallery-hub__title">{title}</h2>
       </div>
-    </Link>
+    </button>
+  );
+}
+
+interface ExpandLayerProps {
+  payload: ExpandPayload;
+  onDone: () => void;
+}
+
+/** Fill screen → hard zoom into black ink → void → navigate */
+function ExpandLayer({ payload, onDone }: ExpandLayerProps) {
+  const [phase, setPhase] = useState<ExpandPhase>('start');
+  const doneRef = useRef(false);
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => {
+      requestAnimationFrame(() => setPhase('fill'));
+    });
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+  useEffect(() => {
+    if (phase === 'fill') {
+      const t = window.setTimeout(() => setPhase('plunge'), 420);
+      return () => window.clearTimeout(t);
+    }
+    if (phase === 'plunge') {
+      const t = window.setTimeout(() => setPhase('void'), 780);
+      return () => window.clearTimeout(t);
+    }
+    if (phase === 'void') {
+      const t = window.setTimeout(() => {
+        if (doneRef.current) return;
+        doneRef.current = true;
+        onDone();
+      }, 180);
+      return () => window.clearTimeout(t);
+    }
+  }, [phase, onDone]);
+
+  const { rect } = payload;
+  const filled = phase !== 'start';
+
+  return (
+    <div
+      className={`gallery-expand is-${phase}`}
+      style={
+        filled
+          ? undefined
+          : {
+              top: rect.top,
+              left: rect.left,
+              width: rect.width,
+              height: rect.height,
+            }
+      }
+      aria-hidden="true"
+    >
+      <img className="gallery-expand__image" src={payload.image} alt="" draggable={false} />
+      <div className="gallery-expand__ink" />
+      <div className="gallery-expand__void" />
+      <p className={`gallery-expand__title ${phase === 'fill' || phase === 'plunge' ? 'is-in' : ''}`}>
+        {payload.title}
+      </p>
+    </div>
   );
 }
 
 export default function Gallery() {
+  const navigate = useNavigate();
+  const [expand, setExpand] = useState<ExpandPayload | null>(null);
+
+  const handleSelect = (payload: ExpandPayload) => {
+    if (expand) return;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      navigate(payload.link, { state: { galleryEnter: true } });
+      return;
+    }
+
+    setExpand(payload);
+  };
+
+  const handleExpandDone = useCallback(() => {
+    if (!expand) return;
+    navigate(expand.link, { state: { galleryEnter: true } });
+  }, [expand, navigate]);
+
   return (
-    <div 
-      className="flex flex-col md:flex-row"
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        width: '100vw',
-        height: '100vh',
-        zIndex: 0,
-      }}
-    >
+    <div className={`gallery-hub ${expand ? 'is-expanding' : ''}`}>
       <GallerySection
-        image="/images/merhene.png"
+        image="/images/back-tattoo.jpg"
         title="Book"
         link="/gallery/book"
+        onSelect={handleSelect}
+        dismissed={!!expand && expand.link !== '/gallery/book'}
       />
       <GallerySection
-        image="/images/ausse.png"
+        image="/images/tattoo_ex3.jpg"
         title="Flash"
         link="/gallery/flash"
+        onSelect={handleSelect}
+        dismissed={!!expand && expand.link !== '/gallery/flash'}
       />
+
+      {expand && <ExpandLayer payload={expand} onDone={handleExpandDone} />}
     </div>
   );
 }

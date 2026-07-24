@@ -32,6 +32,8 @@ interface TemplateInput {
   zones: string[];
   budgetLabel: string;
   lang: 'fr' | 'en';
+  /** When set, the visitor came from a flash in the gallery */
+  flash?: { title: string | null } | null;
 }
 
 /** Professional starter message — visitor can edit freely afterward */
@@ -40,6 +42,7 @@ export function buildMessageTemplate({
   zones,
   budgetLabel,
   lang,
+  flash,
 }: TemplateInput): string {
   const zoneList =
     zones.length > 0
@@ -56,13 +59,25 @@ export function buildMessageTemplate({
       ? 'Je n’ai pas encore de budget précis.'
       : 'I don’t have a fixed budget yet.';
 
+  const flashName = flash?.title?.trim();
+  const tattooLineFr = flash
+    ? flashName
+      ? `Je souhaite me renseigner pour ce flash « ${flashName} » (image jointe), sur la / les zone(s) suivante(s) : ${zoneList}.`
+      : `Je souhaite me renseigner pour ce flash (image jointe), sur la / les zone(s) suivante(s) : ${zoneList}.`
+    : `Je souhaite me renseigner pour un tatouage sur la / les zone(s) suivante(s) : ${zoneList}.`;
+  const tattooLineEn = flash
+    ? flashName
+      ? `I would like to enquire about this flash “${flashName}” (image attached), on the following area(s): ${zoneList}.`
+      : `I would like to enquire about this flash (image attached), on the following area(s): ${zoneList}.`
+    : `I would like to enquire about a tattoo on the following area(s): ${zoneList}.`;
+
   if (lang === 'fr') {
     switch (category) {
       case 'tattoo':
         return [
           'Bonjour,',
           '',
-          `Je souhaite me renseigner pour un tatouage sur la / les zone(s) suivante(s) : ${zoneList}.`,
+          tattooLineFr,
           budgetLine,
           '',
           'Pourriez-vous me donner une idée de faisabilité, de délai et de tarif pour ce projet ?',
@@ -117,7 +132,7 @@ export function buildMessageTemplate({
       return [
         'Hello,',
         '',
-        `I would like to enquire about a tattoo on the following area(s): ${zoneList}.`,
+        tattooLineEn,
         budgetLine,
         '',
         'Could you please let me know about feasibility, timeline and pricing for this project?',

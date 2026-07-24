@@ -7,8 +7,8 @@ import { useTheme } from '../../hooks/useTheme';
 interface PrimeHeaderProps {
   transparent?: boolean;
   hideOnScroll?: boolean;
-  /** Dark icons/text over a light surface (e.g. playground light mode) */
-  darkChrome?: boolean;
+  /** Force white chrome (YouTube arcade — always dark surface) */
+  forceLightChrome?: boolean;
 }
 
 /* Animated burger icon: three bars morphing into a cross */
@@ -37,7 +37,7 @@ function BurgerIcon({ isOpen }: { isOpen: boolean }) {
 export default function PrimeHeader({
   transparent = false,
   hideOnScroll = false,
-  darkChrome = false,
+  forceLightChrome = false,
 }: PrimeHeaderProps) {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
@@ -76,39 +76,18 @@ export default function PrimeHeader({
     setIsMenuOpen(false);
   };
 
-  // Mobile open menu uses a dark overlay → white chrome there only.
-  // Desktop open menu stays on the light playground surface → keep dark chrome.
-  const desktopDarkChrome = darkChrome;
-  const mobileDarkChrome = darkChrome && !isMenuOpen;
-
-  const getLogoSrc = (isMobile: boolean) => {
-    if (isMobile && isMenuOpen) return '/images/logo.png';
-    if (darkChrome) return '/images/blacklogo.png';
-    if (transparent) return '/images/logo.png';
-    return theme === 'dark' ? '/images/logo.png' : '/images/blacklogo.png';
-  };
-
+  // Light mode → dark ink; dark mode → light ink. YouTube always light ink.
+  // Open mobile menu uses a dark overlay → white chrome there only.
+  const darkInkDesktop = !forceLightChrome && theme === 'light';
+  const darkInkMobile = darkInkDesktop && !isMenuOpen;
   const lightTextClass = 'text-white drop-shadow-lg';
   const darkTextClass = 'text-neutral-900';
-
-  const desktopTextClass = transparent
-    ? desktopDarkChrome
-      ? darkTextClass
-      : lightTextClass
-    : 'prime-header-link';
-
-  const mobileTextClass =
-    transparent || isMenuOpen
-      ? mobileDarkChrome
-        ? darkTextClass
-        : lightTextClass
-      : 'prime-header-link';
-
-  const shadowClass = transparent && !isMenuOpen ? '' : 'shadow-md';
-  const desktopLogoShadow = transparent && !desktopDarkChrome ? 'drop-shadow-lg' : '';
-  const mobileLogoShadow = transparent && !mobileDarkChrome ? 'drop-shadow-lg' : '';
-  const desktopThemeToggleLight = transparent && !desktopDarkChrome;
-  const mobileThemeToggleLight = (transparent && !mobileDarkChrome) || isMenuOpen;
+  const desktopInkClass = darkInkDesktop ? darkTextClass : lightTextClass;
+  const mobileInkClass = darkInkMobile ? darkTextClass : lightTextClass;
+  const desktopLogoSrc = darkInkDesktop ? '/images/blacklogo.png' : '/images/logo.png';
+  const mobileLogoSrc = darkInkMobile ? '/images/blacklogo.png' : '/images/logo.png';
+  const desktopLogoShadow = darkInkDesktop ? '' : 'drop-shadow-lg';
+  const mobileLogoShadow = darkInkMobile ? '' : 'drop-shadow-lg';
 
   const getDesktopBgColor = () => {
     if (transparent) return 'transparent';
@@ -116,7 +95,7 @@ export default function PrimeHeader({
   };
 
   const getMobileBgColor = () => {
-    if (isMenuOpen) return theme === 'dark' ? '#171617' : 'rgba(0, 0, 0, 0.85)';
+    if (isMenuOpen) return 'rgba(0, 0, 0, 0.85)';
     if (transparent) return 'transparent';
     return theme === 'dark' ? '#171617' : '#ffffff';
   };
@@ -130,13 +109,7 @@ export default function PrimeHeader({
 
   const mobileHeaderClass = [
     'lg:hidden sticky top-0 z-10 w-full max-w-full overflow-x-hidden transition-colors duration-300',
-    isMenuOpen && theme === 'dark'
-      ? 'prime-header--menu'
-      : transparent
-        ? ''
-        : theme === 'dark'
-          ? 'prime-header--solid'
-          : shadowClass,
+    transparent || isMenuOpen ? '' : 'shadow-md',
   ]
     .filter(Boolean)
     .join(' ');
@@ -162,7 +135,7 @@ export default function PrimeHeader({
           <div className="flex min-w-0 flex-1 items-center gap-4 overflow-hidden">
             <Link to="/" className="flex shrink-0 items-center no-underline">
               <img
-                src={getLogoSrc(false)}
+                src={desktopLogoSrc}
                 alt="Standottori logo"
                 style={{ height: '2.25rem', width: 'auto' }}
                 className={desktopLogoShadow}
@@ -171,7 +144,7 @@ export default function PrimeHeader({
 
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className={`flex shrink-0 items-center justify-center bg-transparent border-none cursor-pointer ${desktopTextClass}`}
+              className={`flex shrink-0 items-center justify-center bg-transparent border-none cursor-pointer ${desktopInkClass}`}
               style={{ width: '40px', height: '40px' }}
               aria-label={isMenuOpen ? t('nav.close_menu') : t('nav.open_menu')}
               aria-expanded={isMenuOpen}
@@ -194,7 +167,7 @@ export default function PrimeHeader({
                   <li key={item.path}>
                     <button
                       onClick={() => handleNavClick(item.path)}
-                      className={`${navButtonClass} ${desktopTextClass}`}
+                      className={`${navButtonClass} ${desktopInkClass}`}
                     >
                       {item.label}
                     </button>
@@ -207,11 +180,11 @@ export default function PrimeHeader({
           <div className="flex shrink-0 items-center gap-3">
             <button
               onClick={changeLang}
-              className={`bg-transparent border-none cursor-pointer text-sm font-semibold ${desktopTextClass}`}
+              className={`bg-transparent border-none cursor-pointer text-sm font-semibold ${desktopInkClass}`}
             >
               {i18n.language === 'fr' ? 'EN' : 'FR'}
             </button>
-            <ThemeToggle transparent={desktopThemeToggleLight} />
+            <ThemeToggle darkInk={darkInkDesktop} transparent={!darkInkDesktop} />
           </div>
         </div>
       </header>
@@ -225,7 +198,7 @@ export default function PrimeHeader({
           <div className="flex min-w-0 items-center gap-2">
             <Link to="/" className="flex shrink-0 items-center no-underline">
               <img
-                src={getLogoSrc(true)}
+                src={mobileLogoSrc}
                 alt="Standottori logo"
                 style={{ height: '2.25rem', width: 'auto', maxWidth: '9rem' }}
                 className={mobileLogoShadow}
@@ -234,7 +207,7 @@ export default function PrimeHeader({
 
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className={`flex shrink-0 items-center justify-center bg-transparent border-none cursor-pointer ${mobileTextClass}`}
+              className={`flex shrink-0 items-center justify-center bg-transparent border-none cursor-pointer ${mobileInkClass}`}
               style={{ width: '40px', height: '40px' }}
               aria-label={isMenuOpen ? t('nav.close_menu') : t('nav.open_menu')}
               aria-expanded={isMenuOpen}
@@ -246,11 +219,11 @@ export default function PrimeHeader({
           <div className="flex shrink-0 items-center gap-3">
             <button
               onClick={changeLang}
-              className={`bg-transparent border-none cursor-pointer text-sm font-semibold ${mobileTextClass}`}
+              className={`bg-transparent border-none cursor-pointer text-sm font-semibold ${mobileInkClass}`}
             >
               {i18n.language === 'fr' ? 'EN' : 'FR'}
             </button>
-            <ThemeToggle transparent={mobileThemeToggleLight} />
+            <ThemeToggle darkInk={darkInkMobile} transparent={!darkInkMobile} />
           </div>
         </div>
 
@@ -272,9 +245,7 @@ export default function PrimeHeader({
               >
                 <button
                   onClick={() => handleNavClick(item.path)}
-                  className={`${navButtonClass} prime-header-mobile-item block w-full text-left px-4 py-3 ${
-                    theme === 'dark' && isMenuOpen ? '' : 'text-white'
-                  }`}
+                  className={`${navButtonClass} prime-header-mobile-item block w-full text-left px-4 py-3 ${mobileInkClass}`}
                 >
                   {item.label}
                 </button>

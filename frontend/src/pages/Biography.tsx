@@ -63,6 +63,13 @@ export default function Biography() {
       </p>
     ));
 
+  // Same lift for both photos: soft depth in light mode, clearer edge in dark
+  // (default shadow-lg is almost invisible on #171717).
+  const bioImageClass =
+    'w-full md:w-5/12 shrink-0 rounded-lg object-cover ' +
+    'ring-1 ring-[#171617]/12 shadow-[0_14px_36px_rgba(23,22,23,0.16)] ' +
+    'dark:ring-white/14 dark:shadow-[0_18px_48px_rgba(0,0,0,0.65),0_0_0_1px_rgba(255,255,255,0.06)]';
+
   return (
     <ZoomReveal
       backgroundSrc="/images/tattoingStan.png"
@@ -81,7 +88,11 @@ export default function Biography() {
           <img
             src={publicImageUrl(bio.photo_path)}
             alt={`Portrait - ${title}`}
-            className="w-40 h-40 rounded-full object-cover mb-10"
+            className={
+              'w-40 h-40 rounded-full object-cover mb-10 ' +
+              'ring-1 ring-[#171617]/12 shadow-[0_10px_28px_rgba(23,22,23,0.16)] ' +
+              'dark:ring-white/14 dark:shadow-[0_14px_36px_rgba(0,0,0,0.65),0_0_0_1px_rgba(255,255,255,0.06)]'
+            }
           />
         )}
 
@@ -91,7 +102,7 @@ export default function Biography() {
             src={imageTop}
             alt="Stan Ottori - tatouage"
             loading="lazy"
-            className="w-full md:w-5/12 shrink-0 rounded-lg object-cover shadow-lg"
+            className={bioImageClass}
           />
           <div className="flex-1">{renderParagraphs(topParagraphs)}</div>
         </section>
@@ -116,7 +127,7 @@ export default function Biography() {
             src={imageBottom}
             alt="Stan Ottori - flash"
             loading="lazy"
-            className="w-full md:w-5/12 shrink-0 rounded-lg object-cover shadow-lg"
+            className={bioImageClass}
           />
         </section>
       </div>

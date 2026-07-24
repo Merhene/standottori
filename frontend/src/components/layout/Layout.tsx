@@ -1,29 +1,33 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import PrimeHeader from './PrimeHeader';
-import { useTheme } from '../../hooks/useTheme';
 
 export default function Layout() {
   const location = useLocation();
   const path = location.pathname;
-  const { theme } = useTheme();
 
   const isHomePage = path === '/';
-  const isGalleryPage = path === '/gallery';
+  const isGalleryHub = path === '/gallery';
+  const isGalleryGrid = path === '/gallery/book' || path === '/gallery/flash';
   // Pages with their own scroll-driven layout keep a sticky header
-  const isStickyHeaderPage =
-    path === '/gallery/book' || path === '/gallery/flash' || path === '/biography';
+  const isStickyHeaderPage = isGalleryGrid || path === '/biography';
   const isPlayground = path === '/playground';
-  const isBiography = path === '/biography';
   const isYouTube = path === '/youtube';
   const isFullscreenPage =
-    isHomePage || isGalleryPage || isStickyHeaderPage || isPlayground || isYouTube;
+    isHomePage || isGalleryHub || isStickyHeaderPage || isPlayground || isYouTube;
 
-  // Fullscreen pages: transparent header over the page content
+  // Transparent everywhere; YouTube keeps white chrome on its dark arcade.
+  const header = (
+    <PrimeHeader transparent forceLightChrome={isYouTube} />
+  );
+
+  // Fullscreen pages: header overlays the page (no classic footer chrome)
   if (isFullscreenPage) {
     return (
       <div className="relative min-h-screen">
-        <div className={`${isStickyHeaderPage ? 'sticky' : 'fixed'} top-0 left-0 right-0 z-10 w-full max-w-[100vw] overflow-x-hidden`}>
-          <PrimeHeader transparent darkChrome={(isPlayground || isBiography) && theme === 'light'} />
+        <div
+          className={`${isStickyHeaderPage ? 'sticky' : 'fixed'} top-0 left-0 right-0 z-10 w-full max-w-[100vw] overflow-x-hidden`}
+        >
+          {header}
         </div>
 
         <Outlet />
@@ -31,10 +35,10 @@ export default function Layout() {
     );
   }
 
-  // Other pages: classic layout
+  // Other pages: same transparent navbar, classic content + footer
   return (
     <div className="min-h-screen flex flex-col bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text">
-      <PrimeHeader />
+      <div className="sticky top-0 z-10 w-full max-w-[100vw] overflow-x-hidden">{header}</div>
 
       <main className="flex-grow container mx-auto px-4 py-8">
         <Outlet />
