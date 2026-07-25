@@ -148,9 +148,23 @@ const resources = {
         }
       },
       youtube: {
-        title: 'YouTube',
+        title: 'Turbo Tattoo',
+        tagline: '3000',
+        eyebrow: 'System online',
+        insert_coin: 'INSERT COIN',
+        press_start: 'PRESS START',
+        logo_alt: 'Standottori — Turbo Tattoo 3000',
+        featured_badge: 'Featured · Channel star',
+        featured_title: 'Vidéo officielle Turbo Tattoo 3000',
+        episode_1: 'Episode · Level 1',
+        episode_2: 'Episode · Level 2',
+        carousel_label: 'Épisodes Turbo Tattoo 3000',
+        prev: 'Épisode précédent',
+        next: 'Épisode suivant',
+        sound_on: 'SFX ON',
+        sound_off: 'SFX OFF',
         coming_soon: 'Chaîne YouTube en construction...',
-        visit_channel: 'Voir la chaîne YouTube'
+        visit_channel: 'Enter the channel'
       },
       legal: {
         title: 'Mentions légales',
@@ -308,9 +322,23 @@ const resources = {
         }
       },
       youtube: {
-        title: 'YouTube',
+        title: 'Turbo Tattoo',
+        tagline: '3000',
+        eyebrow: 'System online',
+        insert_coin: 'INSERT COIN',
+        press_start: 'PRESS START',
+        logo_alt: 'Standottori — Turbo Tattoo 3000',
+        featured_badge: 'Featured · Channel star',
+        featured_title: 'Official Turbo Tattoo 3000 video',
+        episode_1: 'Episode · Level 1',
+        episode_2: 'Episode · Level 2',
+        carousel_label: 'Turbo Tattoo 3000 episodes',
+        prev: 'Previous episode',
+        next: 'Next episode',
+        sound_on: 'SFX ON',
+        sound_off: 'SFX OFF',
         coming_soon: 'YouTube channel coming soon...',
-        visit_channel: 'Visit the YouTube channel'
+        visit_channel: 'Enter the channel'
       },
       legal: {
         title: 'Legal Notice',

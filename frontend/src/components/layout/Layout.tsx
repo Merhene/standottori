@@ -14,8 +14,9 @@ export default function Layout() {
     path === '/gallery/book' || path === '/gallery/flash' || path === '/biography';
   const isPlayground = path === '/playground';
   const isBiography = path === '/biography';
+  const isYouTube = path === '/youtube';
   const isFullscreenPage =
-    isHomePage || isGalleryPage || isStickyHeaderPage || isPlayground;
+    isHomePage || isGalleryPage || isStickyHeaderPage || isPlayground || isYouTube;
 
   // Fullscreen pages: transparent header over the page content
   if (isFullscreenPage) {
