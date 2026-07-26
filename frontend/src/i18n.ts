@@ -55,7 +55,11 @@ const resources = {
       },
       gallery: {
         title: 'Galerie',
-        coming_soon: 'Galerie en construction...'
+        coming_soon: 'Galerie en construction...',
+        ask_flash: 'Demander ce flash',
+        ask_flash_confirm: 'Voulez-vous demander ce flash ?',
+        ask_flash_yes: 'Oui',
+        ask_flash_no: 'Non'
       },
       info: {
         title: 'Informations',
@@ -92,6 +96,8 @@ const resources = {
         remove_attachment: 'Retirer {{name}}',
         attach_too_many: 'Maximum {{max}} fichiers.',
         attach_too_large: '« {{name}} » dépasse {{max}} Mo.',
+        flash_attached: 'Flash sélectionné — image jointe automatiquement.',
+        flash_attach_failed: 'Impossible de joindre le flash automatiquement. Vous pouvez l’ajouter manuellement.',
         send: 'Envoyer',
         sending: 'Envoi en cours…',
         sent: 'Merci ! Votre message a bien été envoyé.',
@@ -229,7 +235,11 @@ const resources = {
       },
       gallery: {
         title: 'Gallery',
-        coming_soon: 'Gallery coming soon...'
+        coming_soon: 'Gallery coming soon...',
+        ask_flash: 'Ask for this flash',
+        ask_flash_confirm: 'Do you want to ask for this flash?',
+        ask_flash_yes: 'Yes',
+        ask_flash_no: 'No'
       },
       info: {
         title: 'Information',
@@ -266,6 +276,8 @@ const resources = {
         remove_attachment: 'Remove {{name}}',
         attach_too_many: 'Maximum {{max}} files.',
         attach_too_large: '“{{name}}” exceeds {{max}} MB.',
+        flash_attached: 'Flash selected — image attached automatically.',
+        flash_attach_failed: 'Could not attach the flash automatically. You can add it manually.',
         send: 'Send',
         sending: 'Sending…',
         sent: 'Thank you! Your message has been sent.',

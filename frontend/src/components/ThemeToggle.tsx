@@ -3,15 +3,22 @@ import { useTranslation } from 'react-i18next';
 
 interface ThemeToggleProps {
   transparent?: boolean;
+  /** Force dark icons (e.g. mobile light-style bar while app theme is dark) */
+  darkInk?: boolean;
 }
 
-export default function ThemeToggle({ transparent = false }: ThemeToggleProps) {
+export default function ThemeToggle({
+  transparent = false,
+  darkInk = false,
+}: ThemeToggleProps) {
   const { theme, toggleTheme } = useTheme();
   const { t } = useTranslation();
-  
-  const colorClass = transparent
-    ? 'text-white drop-shadow-lg'
-    : 'prime-header-link';
+
+  const colorClass = darkInk
+    ? 'text-neutral-900'
+    : transparent
+      ? 'text-white drop-shadow-lg'
+      : 'prime-header-link';
 
   return (
     <button
