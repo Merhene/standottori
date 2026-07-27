@@ -49,9 +49,16 @@ const resources = {
       },
       events: {
         title: 'Événements',
+        lead: 'Retrouvez les conventions, guest spots et dates à venir sur la carte.',
         coming_soon: 'Calendrier en construction...',
         upcoming: 'À venir',
-        past: 'Événements passés'
+        past: 'Événements passés',
+        filter_label: 'Filtrer les événements',
+        filter_all: 'Tous',
+        filter_empty: 'Aucun événement dans ce filtre.',
+        map_empty: 'Aucun événement géolocalisé pour l’instant. Ajoutez un lieu depuis l’admin.',
+        map_close: 'Fermer la fiche',
+        not_on_map: 'pas sur la carte'
       },
       gallery: {
         title: 'Galerie',
@@ -229,9 +236,16 @@ const resources = {
       },
       events: {
         title: 'Events',
+        lead: 'Find conventions, guest spots and upcoming dates on the map.',
         coming_soon: 'Calendar coming soon...',
         upcoming: 'Upcoming',
-        past: 'Past events'
+        past: 'Past events',
+        filter_label: 'Filter events',
+        filter_all: 'All',
+        filter_empty: 'No events in this filter.',
+        map_empty: 'No geolocated events yet. Add a place from the admin.',
+        map_close: 'Close details',
+        not_on_map: 'not on map'
       },
       gallery: {
         title: 'Gallery',

@@ -18,6 +18,9 @@ export interface SiteEvent {
   location: string | null;
   description: string | null;
   status: EventStatus;
+  /** WGS84 — null when the event has no map pin yet */
+  latitude: number | null;
+  longitude: number | null;
   created_at: string;
 }
 
