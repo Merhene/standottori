@@ -70,7 +70,18 @@ export async function listEvents(): Promise<SiteEvent[]> {
     .select('*')
     .order('event_date', { ascending: false });
   if (error) throw new Error(error.message);
-  return data ?? [];
+
+  // Coerce lat/lng — PostgREST may return numerics as strings
+  return (data ?? []).map((row) => {
+    const event = row as SiteEvent;
+    const lat = event.latitude == null ? null : Number(event.latitude);
+    const lng = event.longitude == null ? null : Number(event.longitude);
+    return {
+      ...event,
+      latitude: lat != null && Number.isFinite(lat) ? lat : null,
+      longitude: lng != null && Number.isFinite(lng) ? lng : null,
+    };
+  });
 }
 
 export type EventInput = Omit<SiteEvent, 'id' | 'created_at'>;

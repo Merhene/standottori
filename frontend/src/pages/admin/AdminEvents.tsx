@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AdminBreadcrumb } from '../../components/admin';
 import StatusBanner, { type Status } from '../../components/admin/StatusBanner';
+import { searchPlaces, type GeocodeResult } from '../../features/events/geocode';
 import {
   listEvents,
   createEvent,
@@ -16,6 +17,8 @@ const EMPTY_FORM: EventInput = {
   location: '',
   description: '',
   status: 'upcoming',
+  latitude: null,
+  longitude: null,
 };
 
 const STATUS_LABELS: Record<EventStatus, string> = {
@@ -32,6 +35,10 @@ export default function AdminEvents() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [placeQuery, setPlaceQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<GeocodeResult[]>([]);
+  const [isGeocoding, setIsGeocoding] = useState(false);
+  const geoTimer = useRef<number | null>(null);
 
   const refresh = async () => {
     try {
@@ -47,8 +54,16 @@ export default function AdminEvents() {
     refresh();
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (geoTimer.current) window.clearTimeout(geoTimer.current);
+    };
+  }, []);
+
   const openCreate = () => {
     setForm(EMPTY_FORM);
+    setPlaceQuery('');
+    setSuggestions([]);
     setEditingId(null);
     setIsFormOpen(true);
     setStatus(null);
@@ -61,10 +76,49 @@ export default function AdminEvents() {
       location: event.location ?? '',
       description: event.description ?? '',
       status: event.status,
+      latitude: event.latitude ?? null,
+      longitude: event.longitude ?? null,
     });
+    setPlaceQuery(event.location ?? '');
+    setSuggestions([]);
     setEditingId(event.id);
     setIsFormOpen(true);
     setStatus(null);
+  };
+
+  const scheduleGeocode = (query: string) => {
+    setPlaceQuery(query);
+    setForm((prev) => ({ ...prev, location: query }));
+    if (geoTimer.current) window.clearTimeout(geoTimer.current);
+    if (query.trim().length < 3) {
+      setSuggestions([]);
+      return;
+    }
+    geoTimer.current = window.setTimeout(async () => {
+      setIsGeocoding(true);
+      try {
+        setSuggestions(await searchPlaces(query, 'fr'));
+      } catch {
+        setSuggestions([]);
+      } finally {
+        setIsGeocoding(false);
+      }
+    }, 550);
+  };
+
+  const pickPlace = (place: GeocodeResult) => {
+    setForm((prev) => ({
+      ...prev,
+      location: place.label,
+      latitude: place.latitude,
+      longitude: place.longitude,
+    }));
+    setPlaceQuery(place.label);
+    setSuggestions([]);
+  };
+
+  const clearCoords = () => {
+    setForm((prev) => ({ ...prev, latitude: null, longitude: null }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -72,12 +126,18 @@ export default function AdminEvents() {
     setIsSaving(true);
     setStatus(null);
 
+    const payload: EventInput = {
+      ...form,
+      location: form.location?.trim() || null,
+      description: form.description?.trim() || null,
+    };
+
     try {
       if (editingId) {
-        await updateEvent(editingId, form);
+        await updateEvent(editingId, payload);
         setStatus({ kind: 'success', message: 'Événement mis à jour.' });
       } else {
-        await createEvent(form);
+        await createEvent(payload);
         setStatus({ kind: 'success', message: 'Événement créé.' });
       }
       setIsFormOpen(false);
@@ -105,6 +165,12 @@ export default function AdminEvents() {
 
   const inputClass =
     'w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-transparent';
+
+  const hasPin =
+    typeof form.latitude === 'number' &&
+    typeof form.longitude === 'number' &&
+    Number.isFinite(form.latitude) &&
+    Number.isFinite(form.longitude);
 
   return (
     <div className="p-6">
@@ -156,17 +222,41 @@ export default function AdminEvents() {
                 className={inputClass}
               />
             </div>
-            <div>
+            <div className="md:col-span-2 relative">
               <label htmlFor="event-location" className="block text-sm font-semibold mb-2">
-                Lieu
+                Lieu (recherche carte)
               </label>
               <input
                 id="event-location"
                 type="text"
-                value={form.location ?? ''}
-                onChange={(e) => setForm({ ...form, location: e.target.value })}
+                value={placeQuery}
+                onChange={(e) => scheduleGeocode(e.target.value)}
+                placeholder="Ex. Paris, Lyon, Bruxelles…"
                 className={inputClass}
+                autoComplete="off"
               />
+              <p className="text-xs opacity-50 mt-1.5 m-0">
+                Tapez une ville puis choisissez une suggestion pour placer l’épingle sur la carte
+                publique.
+              </p>
+              {isGeocoding && (
+                <p className="text-xs opacity-60 mt-1 m-0">Recherche en cours…</p>
+              )}
+              {suggestions.length > 0 && (
+                <ul className="absolute z-20 left-0 right-0 mt-1 max-h-56 overflow-auto list-none m-0 p-0 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 shadow-lg">
+                  {suggestions.map((place) => (
+                    <li key={`${place.latitude}-${place.longitude}-${place.label}`}>
+                      <button
+                        type="button"
+                        onClick={() => pickPlace(place)}
+                        className="w-full text-left px-3 py-2 text-sm bg-transparent border-none cursor-pointer hover:bg-black/5 dark:hover:bg-white/10"
+                      >
+                        {place.label}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
             <div>
               <label htmlFor="event-status" className="block text-sm font-semibold mb-2">
@@ -184,6 +274,23 @@ export default function AdminEvents() {
                   </option>
                 ))}
               </select>
+            </div>
+            <div className="flex flex-col justify-end">
+              {hasPin ? (
+                <p className="text-sm m-0 mb-2">
+                  <i className="pi pi-map-marker mr-1" aria-hidden="true" />
+                  Pin : {form.latitude!.toFixed(4)}, {form.longitude!.toFixed(4)}{' '}
+                  <button
+                    type="button"
+                    onClick={clearCoords}
+                    className="underline opacity-70 hover:opacity-100 bg-transparent border-none cursor-pointer text-inherit p-0"
+                  >
+                    retirer
+                  </button>
+                </p>
+              ) : (
+                <p className="text-sm opacity-50 m-0 mb-2">Pas encore d’épingle carte</p>
+              )}
             </div>
           </div>
 
@@ -223,6 +330,7 @@ export default function AdminEvents() {
               <th className="text-left px-4 py-3 font-semibold">Titre</th>
               <th className="text-left px-4 py-3 font-semibold">Date</th>
               <th className="text-left px-4 py-3 font-semibold">Lieu</th>
+              <th className="text-left px-4 py-3 font-semibold">Carte</th>
               <th className="text-left px-4 py-3 font-semibold">Statut</th>
               <th className="text-right px-4 py-3 font-semibold">Actions</th>
             </tr>
@@ -230,13 +338,13 @@ export default function AdminEvents() {
           <tbody>
             {isLoading ? (
               <tr>
-                <td className="px-4 py-4 text-center opacity-50" colSpan={5}>
+                <td className="px-4 py-4 text-center opacity-50" colSpan={6}>
                   Chargement…
                 </td>
               </tr>
             ) : events.length === 0 ? (
               <tr className="border-t border-gray-200 dark:border-gray-700">
-                <td className="px-4 py-4 text-center opacity-50" colSpan={5}>
+                <td className="px-4 py-4 text-center opacity-50" colSpan={6}>
                   Aucun événement pour le moment
                 </td>
               </tr>
@@ -248,6 +356,15 @@ export default function AdminEvents() {
                     {new Date(event.event_date).toLocaleDateString('fr-FR')}
                   </td>
                   <td className="px-4 py-3">{event.location}</td>
+                  <td className="px-4 py-3">
+                    {event.latitude != null && event.longitude != null ? (
+                      <span title={`${event.latitude}, ${event.longitude}`}>
+                        <i className="pi pi-map-marker" aria-label="Sur la carte" />
+                      </span>
+                    ) : (
+                      <span className="opacity-40">—</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3">{STATUS_LABELS[event.status]}</td>
                   <td className="px-4 py-3 text-right whitespace-nowrap">
                     <button

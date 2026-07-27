@@ -1,0 +1,183 @@
+/* Events world map — Ironman-style hero surface */
+
+.events-map {
+  --events-pin: #c4123a;
+  --events-pin-ring: #f0eeec;
+  position: relative;
+  width: 100%;
+  height: min(62vh, 560px);
+  min-height: 280px;
+  overflow: hidden;
+  background: #0e0e10;
+}
+
+.light .events-map {
+  --events-pin: #9b0e2e;
+  --events-pin-ring: #171617;
+  background: #d8d4cc;
+}
+
+.events-map__canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.events-map__canvas .maplibregl-canvas {
+  outline: none;
+}
+
+.events-map__pin {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--events-pin);
+  border: 2px solid var(--events-pin-ring);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  transform: translateY(2px);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.events-map__pin:hover,
+.events-map__pin.is-active {
+  transform: translateY(2px) scale(1.25);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.55);
+}
+
+.events-map__pin.is-past {
+  opacity: 0.55;
+}
+
+.events-map__empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  text-align: center;
+  color: #f0eeec;
+  background: #171617;
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+
+.light .events-map__empty {
+  color: #171617;
+  background: #f5f1e8;
+}
+
+.events-map__card {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 2;
+  width: min(22rem, calc(100% - 2rem));
+  padding: 1rem 1.1rem;
+  background: rgba(23, 22, 23, 0.92);
+  color: #f0eeec;
+  border: 1px solid rgba(240, 238, 236, 0.12);
+  backdrop-filter: blur(8px);
+}
+
+.light .events-map__card {
+  background: rgba(248, 248, 248, 0.95);
+  color: #171617;
+  border-color: rgba(23, 22, 23, 0.12);
+}
+
+.events-map__card-kicker {
+  margin: 0 0 0.35rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+.events-map__card-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.events-map__card-meta {
+  margin: 0.4rem 0 0;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.events-map__card-desc {
+  margin: 0.65rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  opacity: 0.85;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.events-map__card-close {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.events-map__card-close:hover {
+  opacity: 1;
+}
+
+/* Hide default MapLibre attribution clutter a bit; keep it readable */
+.events-map .maplibregl-ctrl-attrib {
+  font-size: 10px;
+  background: rgba(0, 0, 0, 0.35) !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.light .events-map .maplibregl-ctrl-attrib {
+  background: rgba(255, 255, 255, 0.55) !important;
+  color: rgba(0, 0, 0, 0.65) !important;
+}
+
+.events-map .maplibregl-ctrl-group {
+  background: rgba(23, 22, 23, 0.9);
+  border: 1px solid rgba(240, 238, 236, 0.12);
+}
+
+.events-map .maplibregl-ctrl-group button {
+  background: transparent;
+}
+
+.events-map .maplibregl-ctrl-group button + button {
+  border-top-color: rgba(240, 238, 236, 0.12);
+}
+
+.light .events-map .maplibregl-ctrl-group {
+  background: rgba(248, 248, 248, 0.95);
+  border-color: rgba(23, 22, 23, 0.12);
+}
+
+.light .events-map .maplibregl-ctrl-group button + button {
+  border-top-color: rgba(23, 22, 23, 0.12);
+}
+
+@media (max-width: 767px) {
+  .events-map {
+    height: min(48vh, 380px);
+  }
+
+  .events-map__card {
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    width: auto;
+  }
+}

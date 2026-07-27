@@ -35,10 +35,17 @@ npm run dev        # http://localhost:5173
 
 Without Supabase credentials the site runs in a degraded mode: static fallback images, placeholder texts, and the admin shows a "backend not configured" notice.
 
+## Events map
+
+`/events` uses **MapLibre GL** + CARTO basemap tiles (no API key). Pins use
+`events.latitude` / `events.longitude` (included in `0001_initial_schema.sql`).
+Set a place via city search in **Admin → Événements**.
+
 ## Supabase setup (one-time)
 
 1. Create a project on [supabase.com](https://supabase.com) (free tier).
-2. **Schema**: open *SQL Editor*, paste and run `supabase/migrations/0001_initial_schema.sql`.
+2. **Schema**: open *SQL Editor*, paste and run `supabase/migrations/0001_initial_schema.sql`
+   (idempotent — safe to re-run; applies upgrades like biography images, `form_url`, event coords).
 3. **Admin user**: *Authentication > Users > Add user* — create the artist's account (email + password).
 4. **Disable sign-ups**: *Authentication > Sign In / Up > disable "Allow new users to sign up"* (the RLS policies grant write access to any authenticated user, so this must stay off).
 5. **Env vars**: copy `frontend/.env.example` to `frontend/.env.local` and fill in the *Project URL* and *anon public key* from *Project Settings > API*. Restart `npm run dev`.
