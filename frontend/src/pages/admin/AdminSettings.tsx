@@ -10,7 +10,7 @@ import type { SiteSettings } from '../../lib/types';
 type SettingsForm = Omit<SiteSettings, 'id' | 'updated_at'>;
 
 const EMPTY_FORM: SettingsForm = {
-  default_theme: 'system',
+  default_theme: 'dark',
   lockscreen_enabled: true,
   seo_title: '',
   seo_description: '',

@@ -13,14 +13,8 @@ const NEON_DARK = [
   'drop-shadow(0 0 80px rgba(179, 7, 179, 0.7))',
 ].join(' ');
 
-/** Neon logo display width (reference) */
+/** Shared display width — dark/light assets share the same ink bbox. */
 const LOGO_WIDTH = 'min(70vw, 420px)';
-/**
- * logocreuse is square with more padding than logowsd.
- * Scale so the ink bbox matches the neon logo’s visual size.
- * (logowsd fill≈0.943 width, logocreuse fill≈0.709 → ×1.331)
- */
-const LIGHT_LOGO_WIDTH = 'min(93.2vw, 559px)';
 
 /**
  * Playground sandbox.
@@ -104,7 +98,7 @@ export default function Playground() {
             alt="Standottori logo"
             className="h-auto"
             style={{
-              width: LIGHT_LOGO_WIDTH,
+              width: LOGO_WIDTH,
               opacity: revealed ? 1 : 0,
               transition: logoTransition,
             }}

@@ -5,22 +5,11 @@ import { useUnlock } from '../hooks/useUnlock';
 import { isSupabaseConfigured, publicImageUrl } from '../lib/supabase';
 import { listGalleryImages } from '../lib/content';
 
-// Shown until the artist uploads wallpapers from the admin
-const FALLBACK_IMAGES = [
-  { src: '/images/image1.jpg', alt: 'Tattoo artwork 1' },
-  { src: '/images/image2.jpg', alt: 'Tattoo artwork 2' },
-  { src: '/images/image3.jpg', alt: 'Tattoo artwork 3' },
-  { src: '/images/image4.jpg', alt: 'Tattoo artwork 4' },
-  { src: '/images/image5.jpg', alt: 'Tattoo artwork 5' },
-  { src: '/images/inkSd.jpg', alt: 'Ink artwork' },
-  { src: '/images/tattoingStan.png', alt: 'Stan tattooing' },
-];
-
 /** Covers logo fade + stage fade before autoplay may leave slide 1 */
 const ENTRANCE_TOTAL_MS = 3200;
 
 export default function Home() {
-  const [images, setImages] = useState(FALLBACK_IMAGES);
+  const [images, setImages] = useState<{ src: string; alt: string }[]>([]);
   const { unlocked } = useUnlock();
 
   // Brand stage (slide 1) entrance:
@@ -62,17 +51,15 @@ export default function Home() {
     if (!isSupabaseConfigured) return;
     listGalleryImages('wallpaper')
       .then((wallpapers) => {
-        if (wallpapers.length > 0) {
-          setImages(
-            wallpapers.map((w) => ({
-              src: publicImageUrl(w.storage_path),
-              alt: w.title ?? 'Standottori artwork',
-            }))
-          );
-        }
+        setImages(
+          wallpapers.map((w) => ({
+            src: publicImageUrl(w.storage_path),
+            alt: w.title ?? 'Standottori artwork',
+          }))
+        );
       })
       .catch(() => {
-        // Backend unavailable: keep the fallback images
+        // Backend unavailable: logo-only homepage
       });
   }, []);
 

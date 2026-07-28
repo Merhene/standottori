@@ -10,14 +10,9 @@ const NEON_DARK = [
   'drop-shadow(0 0 80px rgba(179, 7, 179, 0.7))',
 ].join(' ');
 
-/** Neon logo display width - MUST match the lockscreen reveal geometry */
+/** Shared display width — dark/light assets share the same ink bbox now.
+ *  MUST match the lockscreen reveal geometry. */
 const LOGO_WIDTH = 'min(70vw, 420px)';
-/**
- * logocreuse is square with more padding than logowsd.
- * Scale so the ink bbox matches the neon logo's visual size.
- * (logowsd fill≈0.943 width, logocreuse fill≈0.709 -> x1.331)
- */
-const LIGHT_LOGO_WIDTH = 'min(93.2vw, 559px)';
 
 interface LogoSlideProps {
   /** Logo visible (entrance done or in progress) */
@@ -59,7 +54,7 @@ export default function LogoSlide({ revealed, handoff, entranceComplete }: LogoS
             alt="Standottori logo"
             className="h-auto select-none"
             style={{
-              width: LIGHT_LOGO_WIDTH,
+              width: LOGO_WIDTH,
               opacity: revealed ? 1 : 0,
               transition: logoTransition,
             }}

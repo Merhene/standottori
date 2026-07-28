@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getSiteInfo } from '../../lib/content';
 import { isSupabaseConfigured } from '../../lib/supabase';
@@ -11,9 +11,12 @@ interface SocialLink {
 
 /**
  * Site-wide footer: social links from admin site_info + copyright.
+ * Publishes --site-footer-height so fullscreen chrome (e.g. carousel dots)
+ * can sit above this block.
  */
 export default function SiteFooter() {
   const { t } = useTranslation();
+  const footerRef = useRef<HTMLElement>(null);
   const [socials, setSocials] = useState<SocialLink[]>([]);
 
   useEffect(() => {
@@ -35,8 +38,31 @@ export default function SiteFooter() {
       .catch(() => setSocials([]));
   }, []);
 
+  useEffect(() => {
+    const el = footerRef.current;
+    if (!el) return;
+
+    const publishHeight = () => {
+      document.documentElement.style.setProperty(
+        '--site-footer-height',
+        `${el.offsetHeight}px`
+      );
+    };
+
+    publishHeight();
+    const ro = new ResizeObserver(publishHeight);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      document.documentElement.style.removeProperty('--site-footer-height');
+    };
+  }, [socials]);
+
   return (
-    <footer className="border-t border-light-text/10 dark:border-dark-text/10">
+    <footer
+      ref={footerRef}
+      className="relative z-20 border-t border-light-text/10 dark:border-dark-text/10"
+    >
       <div className="container mx-auto px-4 py-6 text-sm flex flex-col items-center gap-4">
         {socials.length > 0 && (
           <ul className="flex flex-wrap justify-center gap-5 list-none m-0 p-0" aria-label={t('footer.socials')}>
@@ -56,7 +82,7 @@ export default function SiteFooter() {
           </ul>
         )}
         <p className="text-center m-0 opacity-70">
-          &copy; {new Date().getFullYear()} Standottori. {t('footer.rights')}
+          &copy; {new Date().getFullYear()} Stan Dottori. {t('footer.rights')}
         </p>
       </div>
     </footer>

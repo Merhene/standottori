@@ -228,39 +228,56 @@ export default function Carousel({
         {slides.map(renderSlide)}
       </div>
 
-      {/* Dots indicator */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-30">
-        {slides.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => goToSlide(index)}
-            className={`w-2 h-2 rounded-full transition-colors ${
-              index === currentIndex
-                ? 'bg-white'
-                : 'bg-white/50 hover:bg-white/75'
-            }`}
-            aria-label={t('carousel.goto_slide', { number: index + 1 })}
-            aria-current={index === currentIndex ? 'true' : 'false'}
-          />
-        ))}
-      </div>
+      {slideCount >= 2 && (
+        <>
+          {/* Sit above the site footer when it shares the first viewport */}
+          {/* Dots indicator */}
+          <div
+            className="absolute left-1/2 -translate-x-1/2 flex gap-2 z-30"
+            style={{
+              bottom: isFullscreen
+                ? 'calc(var(--site-footer-height, 0px) + 1rem)'
+                : '1rem',
+            }}
+          >
+            {slides.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => goToSlide(index)}
+                className={`w-2 h-2 rounded-full transition-colors ${
+                  index === currentIndex
+                    ? 'bg-white'
+                    : 'bg-white/50 hover:bg-white/75'
+                }`}
+                aria-label={t('carousel.goto_slide', { number: index + 1 })}
+                aria-current={index === currentIndex ? 'true' : 'false'}
+              />
+            ))}
+          </div>
 
-      {/* Play/Pause button */}
-      <button
-        onClick={() => setIsPlaying(!isPlaying)}
-        className="absolute bottom-4 right-4 p-2 rounded-full bg-black/30 text-white hover:bg-black/50 focus:outline-none focus:ring-2 focus:ring-white/50 z-30"
-        aria-label={isPlaying ? t('carousel.pause') : t('carousel.play')}
-      >
-        {isPlaying ? (
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-          </svg>
-        ) : (
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M8 5v14l11-7z" />
-          </svg>
-        )}
-      </button>
+          {/* Play/Pause button */}
+          <button
+            onClick={() => setIsPlaying(!isPlaying)}
+            className="absolute right-4 p-2 rounded-full bg-black/30 text-white hover:bg-black/50 focus:outline-none focus:ring-2 focus:ring-white/50 z-30"
+            style={{
+              bottom: isFullscreen
+                ? 'calc(var(--site-footer-height, 0px) + 1rem)'
+                : '1rem',
+            }}
+            aria-label={isPlaying ? t('carousel.pause') : t('carousel.play')}
+          >
+            {isPlaying ? (
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            )}
+          </button>
+        </>
+      )}
     </div>
   );
 }

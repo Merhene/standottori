@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import ThemeToggle from '../ThemeToggle';
 import { useTheme } from '../../hooks/useTheme';
+import { useAuth } from '../../hooks/useAuth';
 
 interface PrimeHeaderProps {
   transparent?: boolean;
@@ -41,6 +42,7 @@ export default function PrimeHeader({
 }: PrimeHeaderProps) {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
+  const { session } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
@@ -67,7 +69,8 @@ export default function PrimeHeader({
     { label: t('nav.gallery'), path: '/gallery' },
     { label: t('nav.contact'), path: '/contact' },
     { label: t('nav.youtube'), path: '/youtube' },
-    { label: t('nav.playground'), path: '/playground' },
+    // Sandbox — only when logged in as admin
+    ...(session ? [{ label: t('nav.playground'), path: '/playground' }] : []),
   ];
 
   const handleNavClick = (path: string) => {

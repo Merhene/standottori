@@ -113,7 +113,7 @@ export default function LockScreen({ onComplete }: { onComplete: () => void }) {
           alt="Standottori"
           className="select-none h-auto"
           style={{
-            width: isDark ? 'min(70vw, 420px)' : 'min(93.2vw, 559px)',
+            width: 'min(70vw, 420px)',
             filter: isDark ? REVEAL_NEON : 'none',
             opacity: isRevealing ? 1 : 0,
             /* pre-rasterise this heavy layer (large PNG + filters) so the

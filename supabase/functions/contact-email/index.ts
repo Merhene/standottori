@@ -1,7 +1,10 @@
 // Supabase Edge Function: forwards contact-form messages to the artist by email.
 //
-// Deploy:   supabase functions deploy contact-email --no-verify-jwt
-// Secrets:  supabase secrets set RESEND_API_KEY=re_xxx CONTACT_TO_EMAIL=artist@example.com
+// Deploy:   npx supabase functions deploy contact-email --no-verify-jwt
+// Secrets:  npx supabase secrets set RESEND_API_KEY=re_xxx
+// Optional: npx supabase secrets set CONTACT_TO_EMAIL=artist@example.com
+//           (overrides Admin → Infos email; otherwise uses site_info.email)
+// Optional: npx supabase secrets set CONTACT_FROM_EMAIL=hello@yourdomain.com
 //
 // Uses Resend (https://resend.com) - free tier: 100 emails/day.
 // Until a custom domain is verified in Resend, the "from" address must be
@@ -10,6 +13,8 @@
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 const CONTACT_TO_EMAIL = Deno.env.get('CONTACT_TO_EMAIL');
 const FROM_EMAIL = Deno.env.get('CONTACT_FROM_EMAIL') ?? 'onboarding@resend.dev';
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -27,6 +32,30 @@ function jsonResponse(body: object, status: number): Response {
   });
 }
 
+/** Prefer secret override, else Admin → Infos (site_info.email). */
+async function resolveArtistEmail(): Promise<string | null> {
+  const fromSecret = CONTACT_TO_EMAIL?.trim();
+  if (fromSecret) return fromSecret;
+
+  if (!SUPABASE_URL || !SERVICE_ROLE_KEY) return null;
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/site_info?select=email&id=eq.1`, {
+      headers: {
+        apikey: SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+      },
+    });
+    if (!res.ok) return null;
+    const rows = (await res.json()) as { email?: string | null }[];
+    const email = rows[0]?.email?.trim();
+    return email || null;
+  } catch (err) {
+    console.error('Failed to load site_info.email:', err);
+    return null;
+  }
+}
+
 interface IncomingAttachment {
   filename?: string;
   content?: string;
@@ -42,8 +71,16 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: 'Method not allowed' }, 405);
   }
 
-  if (!RESEND_API_KEY || !CONTACT_TO_EMAIL) {
+  if (!RESEND_API_KEY) {
     return jsonResponse({ error: 'Email service not configured' }, 500);
+  }
+
+  const toEmail = await resolveArtistEmail();
+  if (!toEmail) {
+    return jsonResponse(
+      { error: 'Artist email not configured (Admin → Infos, or CONTACT_TO_EMAIL secret)' },
+      500
+    );
   }
 
   let payload: {
@@ -127,7 +164,7 @@ Deno.serve(async (req) => {
 
   const resendBody: Record<string, unknown> = {
     from: `Standottori <${FROM_EMAIL}>`,
-    to: [CONTACT_TO_EMAIL],
+    to: [toEmail],
     reply_to: email,
     subject: `[${categoryLabel[category] ?? category}] Message de ${name} via standottori.com`,
     text: `Nom : ${name}\nEmail : ${email}\nObjet : ${categoryLabel[category] ?? category}\n${budgetBlock}${placementBlock}\n${message}`,

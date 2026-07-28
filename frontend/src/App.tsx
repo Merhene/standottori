@@ -102,12 +102,13 @@ function App() {
                     <Route path="info" element={<Navigate to="/contact" replace />} />
                     <Route path="contact" element={<Contact />} />
                     <Route path="youtube" element={<YouTube />} />
-                    <Route path="playground" element={<Playground />} />
                     <Route path="legal" element={<Legal />} />
                     <Route path="privacy" element={<Privacy />} />
 
                     <Route path="admin/login" element={<AdminLogin />} />
                     <Route element={<RequireAdmin />}>
+                      {/* Dev sandbox — admin only, hidden from public nav */}
+                      <Route path="playground" element={<Playground />} />
                       <Route path="admin" element={<Admin />} />
                       <Route path="admin/events" element={<AdminEvents />} />
                       <Route path="admin/gallery" element={<AdminGallery />} />

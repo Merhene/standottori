@@ -49,16 +49,23 @@ Set a place via city search in **Admin → Événements**.
 3. **Admin user**: *Authentication > Users > Add user* — create the artist's account (email + password).
 4. **Disable sign-ups**: *Authentication > Sign In / Up > disable "Allow new users to sign up"* (the RLS policies grant write access to any authenticated user, so this must stay off).
 5. **Env vars**: copy `frontend/.env.example` to `frontend/.env.local` and fill in the *Project URL* and *anon public key* from *Project Settings > API*. Restart `npm run dev`.
-6. **Contact email** (optional until launch):
+6. **Contact email** (form → artist inbox via Resend):
+   - In **Admin → Infos**, set the artist **Email** (this is the delivery address).
    - Create a free [Resend](https://resend.com) account and an API key.
-   - Install the [Supabase CLI](https://supabase.com/docs/guides/cli), then:
+   - From the repo root (needs [Supabase CLI](https://supabase.com/docs/guides/cli) / `npx`):
 
      ```bash
-     supabase login
-     supabase link --project-ref <your-project-ref>
-     supabase secrets set RESEND_API_KEY=re_xxx CONTACT_TO_EMAIL=artist@email.com
-     supabase functions deploy contact-email --no-verify-jwt
+     npx supabase login
+     npx supabase link --project-ref <your-project-ref>
+     npx supabase secrets set RESEND_API_KEY=re_xxx
+     npx supabase functions deploy contact-email --no-verify-jwt
      ```
+
+   - Optional override (ignores Admin email):  
+     `npx supabase secrets set CONTACT_TO_EMAIL=artist@email.com`
+   - Optional custom From (after verifying a domain in Resend):  
+     `npx supabase secrets set CONTACT_FROM_EMAIL=hello@yourdomain.com`  
+     Until then, mail is sent from `onboarding@resend.dev` (Reply-To = visitor).
 
 ## Deployment (Vercel)
 
