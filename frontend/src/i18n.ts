@@ -25,7 +25,6 @@ const resources = {
         biography: 'Biographie',
         events: 'Événements',
         gallery: 'Galerie',
-        info: 'Info',
         contact: 'Contact',
         youtube: 'YouTube',
         playground: 'Playground',
@@ -35,6 +34,7 @@ const resources = {
       },
       footer: {
         rights: 'Tous droits réservés.',
+        socials: 'Réseaux sociaux',
         legal: 'Mentions légales',
         privacy: 'Politique de confidentialité'
       },
@@ -68,17 +68,11 @@ const resources = {
         ask_flash_yes: 'Oui',
         ask_flash_no: 'Non'
       },
-      info: {
-        title: 'Informations',
-        coming_soon: 'Informations en construction...',
-        contact_heading: 'Contact',
-        hours_heading: 'Horaires d\'ouverture',
-        socials_heading: 'Réseaux sociaux'
-      },
       contact: {
         title: 'Contact',
         intro:
           'Si vous souhaitez un tatouage, choisissez une zone du corps et laissez votre message. Vous pouvez aussi <formLink>joindre le formulaire</formLink> une fois rempli.',
+        studio_heading: 'Coordonnées',
         form_title: 'Votre message',
         coming_soon: 'Formulaire en construction...',
         name: 'Nom',
@@ -212,7 +206,6 @@ const resources = {
         biography: 'Biography',
         events: 'Events',
         gallery: 'Gallery',
-        info: 'Info',
         contact: 'Contact',
         youtube: 'YouTube',
         playground: 'Playground',
@@ -222,6 +215,7 @@ const resources = {
       },
       footer: {
         rights: 'All rights reserved.',
+        socials: 'Social media',
         legal: 'Legal Notice',
         privacy: 'Privacy Policy'
       },
@@ -255,17 +249,11 @@ const resources = {
         ask_flash_yes: 'Yes',
         ask_flash_no: 'No'
       },
-      info: {
-        title: 'Information',
-        coming_soon: 'Information coming soon...',
-        contact_heading: 'Contact',
-        hours_heading: 'Opening hours',
-        socials_heading: 'Social media'
-      },
       contact: {
         title: 'Contact',
         intro:
           'If you want a tattoo, choose a body part and leave your message. You can also <formLink>attach the form</formLink> once you’ve filled it in.',
+        studio_heading: 'Details',
         form_title: 'Your message',
         coming_soon: 'Form coming soon...',
         name: 'Name',

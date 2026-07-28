@@ -127,6 +127,27 @@ async function saveSingleRow<T extends object>(table: string, values: Partial<T>
 export const getBiography = () => getSingleRow<Biography>('biography');
 export const saveBiography = (values: Partial<Biography>) => saveSingleRow('biography', values);
 
+/** Resolve bilingual biography fields; EN falls back to FR, then legacy columns. */
+export function localizedBiographyText(
+  bio: Biography | null | undefined,
+  language: string,
+  field: 'title' | 'content'
+): string | null {
+  if (!bio) return null;
+  const preferEn = language.toLowerCase().startsWith('en');
+  const localized = preferEn
+    ? field === 'title'
+      ? bio.title_en
+      : bio.content_en
+    : field === 'title'
+      ? bio.title_fr
+      : bio.content_fr;
+  const french = field === 'title' ? bio.title_fr : bio.content_fr;
+  const legacy = field === 'title' ? bio.title : bio.content;
+  const value = localized?.trim() || french?.trim() || legacy?.trim();
+  return value || null;
+}
+
 export const getSiteInfo = () => getSingleRow<SiteInfo>('site_info');
 export const saveSiteInfo = (values: Partial<SiteInfo>) => saveSingleRow('site_info', values);
 

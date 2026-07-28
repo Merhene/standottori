@@ -1,5 +1,6 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import PrimeHeader from './PrimeHeader';
+import SiteFooter from './SiteFooter';
 
 export default function Layout() {
   const location = useLocation();
@@ -19,17 +20,22 @@ export default function Layout() {
   // Transparent everywhere; YouTube keeps white chrome on its dark arcade.
   const header = <PrimeHeader transparent forceLightChrome={isYouTube} />;
 
-  // Fullscreen pages: header overlays the page (no classic footer chrome)
+  // Fullscreen pages: header overlays the page; footer sits after content
   if (isFullscreenPage) {
     return (
-      <div className="relative min-h-screen">
+      <div className="relative min-h-screen flex flex-col">
         <div
           className={`${isStickyHeaderPage ? 'sticky' : 'fixed'} top-0 left-0 right-0 z-10 w-full max-w-[100vw] overflow-x-hidden`}
         >
           {header}
         </div>
 
-        <Outlet />
+        <div className="flex-grow">
+          <Outlet />
+        </div>
+
+        {/* Skip footer on YouTube arcade + gallery hub; show on book/flash grids */}
+        {!isYouTube && !isGalleryHub && <SiteFooter />}
       </div>
     );
   }
@@ -42,13 +48,7 @@ export default function Layout() {
         <main className="flex-grow w-full pt-6 md:pt-8">
           <Outlet />
         </main>
-        <footer className="border-t border-light-text/10 dark:border-dark-text/10">
-          <div className="container mx-auto px-4 py-6 text-sm">
-            <p className="text-center">
-              &copy; {new Date().getFullYear()} Standottori. All rights reserved.
-            </p>
-          </div>
-        </footer>
+        <SiteFooter />
       </div>
     );
   }
@@ -62,13 +62,7 @@ export default function Layout() {
         <Outlet />
       </main>
 
-      <footer className="border-t border-light-text/10 dark:border-dark-text/10">
-        <div className="container mx-auto px-4 py-6 text-sm">
-          <p className="text-center">
-            &copy; {new Date().getFullYear()} Standottori. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

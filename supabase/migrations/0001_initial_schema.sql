@@ -37,6 +37,10 @@ create table if not exists public.biography (
   id integer primary key default 1 check (id = 1),
   title text,
   content text,
+  title_fr text,
+  title_en text,
+  content_fr text,
+  content_en text,
   photo_path text,
   image_top_path text,
   image_bottom_path text,
@@ -75,6 +79,19 @@ create table if not exists public.site_settings (
 alter table public.biography
   add column if not exists image_top_path text,
   add column if not exists image_bottom_path text;
+
+-- Biography FR / EN text (legacy title/content remain as French mirrors)
+alter table public.biography
+  add column if not exists title_fr text,
+  add column if not exists title_en text,
+  add column if not exists content_fr text,
+  add column if not exists content_en text;
+
+update public.biography
+set
+  title_fr = coalesce(title_fr, title),
+  content_fr = coalesce(content_fr, content)
+where title_fr is null or content_fr is null;
 
 -- Contact page: artist intake / booking form URL
 alter table public.site_info

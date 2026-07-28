@@ -26,8 +26,14 @@ export interface SiteEvent {
 
 export interface Biography {
   id: number;
+  /** @deprecated Prefer title_fr — kept in sync as French mirror */
   title: string | null;
+  /** @deprecated Prefer content_fr — kept in sync as French mirror */
   content: string | null;
+  title_fr: string | null;
+  title_en: string | null;
+  content_fr: string | null;
+  content_en: string | null;
   photo_path: string | null;
   image_top_path: string | null;
   image_bottom_path: string | null;
@@ -42,6 +48,7 @@ export interface SiteInfo {
   instagram_url: string | null;
   youtube_url: string | null;
   tiktok_url: string | null;
+  /** @deprecated No longer shown publicly; cleared on admin save */
   opening_hours: string | null;
   /** Public intake / booking form the visitor can fill and attach */
   form_url: string | null;

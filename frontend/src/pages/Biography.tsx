@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import ZoomReveal from '../components/ZoomReveal';
 import ScrollMarquee from '../components/ScrollMarquee';
 import { isSupabaseConfigured, publicImageUrl } from '../lib/supabase';
-import { getBiography, listGalleryImages } from '../lib/content';
+import { getBiography, listGalleryImages, localizedBiographyText } from '../lib/content';
 import type { Biography as BiographyContent } from '../lib/types';
 
 // Static fallbacks shown until the admin uploads their own images
@@ -12,7 +12,7 @@ const FALLBACK_IMAGE_BOTTOM = '/images/merhene.png';
 const FALLBACK_MARQUEE = ['/images/ausse.png', '/images/merhene.png'];
 
 export default function Biography() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [bio, setBio] = useState<BiographyContent | null>(null);
   const [marqueeImages, setMarqueeImages] = useState<string[]>(FALLBACK_MARQUEE);
 
@@ -34,13 +34,14 @@ export default function Biography() {
       });
   }, []);
 
-  const title = bio?.title || 'Standottori';
+  const title = localizedBiographyText(bio, i18n.language, 'title') || 'Standottori';
   const imageTop = bio?.image_top_path ? publicImageUrl(bio.image_top_path) : FALLBACK_IMAGE_TOP;
   const imageBottom = bio?.image_bottom_path
     ? publicImageUrl(bio.image_bottom_path)
     : FALLBACK_IMAGE_BOTTOM;
-  const paragraphs = bio?.content
-    ? bio.content.split(/\n{2,}/).filter((p) => p.trim().length > 0)
+  const body = localizedBiographyText(bio, i18n.language, 'content');
+  const paragraphs = body
+    ? body.split(/\n{2,}/).filter((p) => p.trim().length > 0)
     : [t('biography.coming_soon')];
 
   // Quincunx distribution: first chunk next to the left image, middle chunk

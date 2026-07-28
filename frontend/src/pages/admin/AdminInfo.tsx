@@ -4,7 +4,7 @@ import StatusBanner, { type Status } from '../../components/admin/StatusBanner';
 import { getSiteInfo, saveSiteInfo } from '../../lib/content';
 import type { SiteInfo } from '../../lib/types';
 
-type InfoForm = Omit<SiteInfo, 'id' | 'updated_at'>;
+type InfoForm = Omit<SiteInfo, 'id' | 'updated_at' | 'opening_hours'>;
 
 const EMPTY_FORM: InfoForm = {
   email: '',
@@ -13,7 +13,6 @@ const EMPTY_FORM: InfoForm = {
   instagram_url: '',
   youtube_url: '',
   tiktok_url: '',
-  opening_hours: '',
   form_url: '',
 };
 
@@ -33,7 +32,6 @@ export default function AdminInfo() {
           instagram_url: info.instagram_url ?? '',
           youtube_url: info.youtube_url ?? '',
           tiktok_url: info.tiktok_url ?? '',
-          opening_hours: info.opening_hours ?? '',
           form_url: info.form_url ?? '',
         })
       )
@@ -47,7 +45,8 @@ export default function AdminInfo() {
     setIsSaving(true);
     setStatus(null);
     try {
-      await saveSiteInfo(form);
+      // Clear legacy opening_hours — no longer shown on the public site
+      await saveSiteInfo({ ...form, opening_hours: null });
       setStatus({ kind: 'success', message: 'Informations enregistrées.' });
     } catch (error) {
       setStatus({ kind: 'error', message: `Enregistrement impossible : ${(error as Error).message}` });
@@ -130,6 +129,7 @@ export default function AdminInfo() {
 
           <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4">Réseaux sociaux</h2>
+            <p className="text-sm opacity-60 mb-4">Affichés dans le pied de page du site.</p>
 
             <div className="mb-4">
               <label htmlFor="info-instagram" className="block text-sm font-semibold mb-2">
@@ -190,21 +190,6 @@ export default function AdminInfo() {
               onChange={setField('form_url')}
               className={inputClass}
               placeholder="https://…"
-            />
-          </div>
-
-          <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 lg:col-span-2">
-            <h2 className="text-xl font-semibold mb-4">Horaires d'ouverture</h2>
-            <label htmlFor="info-hours" className="sr-only">
-              Horaires d'ouverture
-            </label>
-            <textarea
-              id="info-hours"
-              value={form.opening_hours ?? ''}
-              onChange={setField('opening_hours')}
-              className={inputClass}
-              placeholder={'Lundi - Vendredi : 10h - 19h\nSamedi : Sur rendez-vous\nDimanche : Fermé'}
-              rows={4}
             />
           </div>
         </div>

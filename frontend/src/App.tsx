@@ -6,7 +6,6 @@ import Home from './pages/Home';
 import Biography from './pages/Biography';
 import Events from './pages/Events';
 import Gallery from './pages/Gallery';
-import Info from './pages/Info';
 import Contact from './pages/Contact';
 import YouTube from './pages/YouTube';
 import Playground from './pages/Playground';
@@ -100,7 +99,7 @@ function App() {
                     <Route path="gallery" element={<Gallery />} />
                     <Route path="gallery/book" element={<GalleryBook />} />
                     <Route path="gallery/flash" element={<GalleryFlash />} />
-                    <Route path="info" element={<Info />} />
+                    <Route path="info" element={<Navigate to="/contact" replace />} />
                     <Route path="contact" element={<Contact />} />
                     <Route path="youtube" element={<YouTube />} />
                     <Route path="playground" element={<Playground />} />
