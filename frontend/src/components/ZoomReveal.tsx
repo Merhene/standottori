@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import FixedBackground from './FixedBackground';
 import { useTheme } from '../hooks/useTheme';
 
@@ -81,9 +82,11 @@ export default function ZoomReveal({
   lightSrc,
   children,
 }: ZoomRevealProps) {
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const isDark = theme === 'dark' || !lightSrc;
   const pageBg = isDark ? '#171717' : '#f8f8f8';
+  const ink = isDark ? '#f8f8f8' : '#171617';
   const [scrollProgress, setScrollProgress] = useState(0);
   const [viewport, setViewport] = useState(() => ({
     width: window.innerWidth,
@@ -115,6 +118,138 @@ export default function ZoomReveal({
       window.removeEventListener('resize', onResize);
     };
   }, [maxScroll]);
+
+  // Beat gate at the settle Y (same as the ↓ arrow):
+  // scroll down → hard-stop there (no overshoot / jump-back) → release finger /
+  // wheel → scroll down again to continue. Scroll up always free; re-arms the gate.
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+
+    type Phase = 'approaching' | 'atStop' | 'free';
+    let phase: Phase = 'approaching';
+    /** After landing on the stop, the current gesture must end before passing. */
+    let passArmed = false;
+    let touching = false;
+    let wheelIdleTimer: number | null = null;
+    let settleTimer: number | null = null;
+
+    const clampToStop = () => {
+      if (Math.abs(window.scrollY - maxScroll) > 0.5) {
+        window.scrollTo({ top: maxScroll, behavior: 'auto' });
+      }
+    };
+
+    const armPassAfterIdle = () => {
+      if (settleTimer != null) window.clearTimeout(settleTimer);
+      settleTimer = window.setTimeout(() => {
+        settleTimer = null;
+        if (phase === 'atStop' && !touching && window.scrollY <= maxScroll + 2) {
+          passArmed = true;
+        }
+      }, 120);
+    };
+
+    const enterStop = () => {
+      phase = 'atStop';
+      passArmed = false;
+      clampToStop();
+      armPassAfterIdle();
+    };
+
+    const onWheel = (e: WheelEvent) => {
+      if (phase === 'free') return;
+
+      if (wheelIdleTimer != null) window.clearTimeout(wheelIdleTimer);
+      wheelIdleTimer = window.setTimeout(() => {
+        wheelIdleTimer = null;
+        if (phase === 'atStop') passArmed = true;
+      }, 140);
+
+      const y = window.scrollY;
+      const down = e.deltaY > 0;
+
+      if (!down) {
+        if (y <= maxScroll + 1) {
+          phase = 'approaching';
+          passArmed = false;
+        }
+        return;
+      }
+
+      if (phase === 'atStop') {
+        if (passArmed) {
+          phase = 'free';
+          return;
+        }
+        e.preventDefault();
+        clampToStop();
+        return;
+      }
+
+      // approaching — stop exactly at the beat, don't let this gesture past
+      if (y >= maxScroll - 1 || y + e.deltaY >= maxScroll) {
+        e.preventDefault();
+        enterStop();
+      }
+    };
+
+    const onScroll = () => {
+      const y = window.scrollY;
+
+      if (y < maxScroll - 40) {
+        phase = 'approaching';
+        passArmed = false;
+        return;
+      }
+
+      if (phase === 'free') return;
+
+      if (y > maxScroll + 0.5) {
+        if (phase === 'approaching') {
+          enterStop();
+          return;
+        }
+        // atStop: hold until the landing gesture is over; then a new scroll may pass
+        if (!passArmed) {
+          clampToStop();
+          return;
+        }
+        if (touching || y > maxScroll + 8) {
+          phase = 'free';
+        }
+      } else if (phase === 'atStop' && !touching) {
+        armPassAfterIdle();
+      }
+    };
+
+    const onTouchStart = () => {
+      touching = true;
+      // New finger-down while already resting on the stop → next move may pass
+      if (phase === 'atStop' && window.scrollY <= maxScroll + 2) {
+        passArmed = true;
+      }
+    };
+    const onTouchEnd = () => {
+      touching = false;
+      if (phase === 'atStop') armPassAfterIdle();
+    };
+
+    window.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchend', onTouchEnd, { passive: true });
+    window.addEventListener('touchcancel', onTouchEnd, { passive: true });
+
+    return () => {
+      if (wheelIdleTimer != null) window.clearTimeout(wheelIdleTimer);
+      if (settleTimer != null) window.clearTimeout(settleTimer);
+      window.removeEventListener('wheel', onWheel);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener('touchcancel', onTouchEnd);
+    };
+  }, [maxScroll, prefersReducedMotion]);
 
   const logoWidthFraction = isSmallMobile ? 0.5 : isMobile ? 0.44 : isTablet ? 0.3 : 0.16;
   const logoWidth = `${logoWidthFraction * 100}%`;
@@ -160,6 +295,17 @@ export default function ZoomReveal({
     : isTablet
       ? '1.5rem 2rem 2.5rem'
       : '4rem';
+
+  // Land at the end of the zoom: neon logo still in view, bio text just below
+  // (not scrolled so far that the heading hits the top of the screen).
+  const scrollToContent = () => {
+    window.scrollTo({
+      top: maxScroll,
+      behavior: prefersReducedMotion ? 'auto' : 'smooth',
+    });
+  };
+
+  const showScrollHint = scrollProgress < 0.9;
 
   if (prefersReducedMotion) {
     const reducedWidth = isMobile
@@ -220,9 +366,12 @@ export default function ZoomReveal({
             style={{
               position: 'relative',
               width: logoWidth,
+              // No CSS transition: scroll drives scale directly. A 0.1s ease
+              // lagged behind fast flings and looked like the logo "slipped"
+              // (worse with large initialScale from the portrait cutouts).
               transform: `translate(${logoTranslateX}, ${logoTranslateY}) scale(${starScale})`,
               transformOrigin: `${ORIGIN_X * 100}% ${ORIGIN_Y * 100}%`,
-              transition: 'transform 0.1s ease-out',
+              willChange: 'transform',
             }}
           >
             <div
@@ -296,6 +445,36 @@ export default function ZoomReveal({
         </div>
       </div>
 
+      {/* Fixed outside the zoom stage so the oversized scale never covers it */}
+      <button
+        type="button"
+        onClick={scrollToContent}
+        aria-label={t('biography.scroll_to_content')}
+        style={{
+          position: 'fixed',
+          bottom: '1.5rem',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 20,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '2.75rem',
+          height: '2.75rem',
+          border: `1px solid ${ink}`,
+          borderRadius: '9999px',
+          background: isDark ? 'rgba(23, 23, 23, 0.45)' : 'rgba(248, 248, 248, 0.55)',
+          backdropFilter: 'blur(6px)',
+          color: ink,
+          opacity: showScrollHint ? 0.95 : 0,
+          pointerEvents: showScrollHint ? 'auto' : 'none',
+          transition: 'opacity 0.35s ease',
+          cursor: 'pointer',
+        }}
+      >
+        <i className="pi pi-angle-down text-xl animate-bounce" aria-hidden="true" />
+      </button>
+
       {/* Bio pulled up after settle → short logo beat, then both scroll away */}
       <div
         style={{
@@ -306,7 +485,6 @@ export default function ZoomReveal({
           padding: contentPadding,
           boxSizing: 'border-box',
           backgroundColor: pageBg,
-          transition: 'margin-top 0.5s ease',
         }}
       >
         {children}

@@ -62,7 +62,7 @@ create table if not exists public.site_info (
 
 create table if not exists public.site_settings (
   id integer primary key default 1 check (id = 1),
-  default_theme text not null default 'system' check (default_theme in ('light', 'dark', 'system')),
+  default_theme text not null default 'dark' check (default_theme in ('light', 'dark', 'system')),
   lockscreen_enabled boolean not null default true,
   seo_title text,
   seo_description text,

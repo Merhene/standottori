@@ -45,7 +45,8 @@ const resources = {
       biography: {
         title: 'Biographie',
         coming_soon: 'Biographie en construction...',
-        portrait_placeholder: 'Portrait à venir'
+        portrait_placeholder: 'Portrait à venir',
+        scroll_to_content: 'Aller au texte'
       },
       events: {
         title: 'Événements',
@@ -226,7 +227,8 @@ const resources = {
       biography: {
         title: 'Biography',
         coming_soon: 'Biography coming soon...',
-        portrait_placeholder: 'Portrait coming soon'
+        portrait_placeholder: 'Portrait coming soon',
+        scroll_to_content: 'Go to the text'
       },
       events: {
         title: 'Events',

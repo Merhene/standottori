@@ -31,6 +31,12 @@ export default function Admin() {
       title: 'Paramètres',
       description: 'Configurer le site et les préférences.',
       path: '/admin/settings'
+    },
+    {
+      icon: 'pi-box',
+      title: 'Playground',
+      description: 'Sandbox de tests (invisible pour les visiteurs).',
+      path: '/playground'
     }
   ];
 

@@ -448,7 +448,8 @@
 
 .reset-button {
   position: absolute;
-  bottom: -48px;
+  /* Clear of dot 4 + its order number under the hexagon */
+  bottom: -72px;
   left: 50%;
   transform: translateX(-50%);
   padding: 8px 22px;
@@ -490,7 +491,7 @@
 
 .error-message {
   position: absolute;
-  bottom: -80px;
+  bottom: -108px;
   left: 50%;
   transform: translateX(-50%);
   font-size: 13px;
