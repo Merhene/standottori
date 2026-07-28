@@ -65,7 +65,6 @@ export default function PrimeHeader({
     { label: t('nav.biography'), path: '/biography' },
     { label: t('nav.events'), path: '/events' },
     { label: t('nav.gallery'), path: '/gallery' },
-    { label: t('nav.info'), path: '/info' },
     { label: t('nav.contact'), path: '/contact' },
     { label: t('nav.youtube'), path: '/youtube' },
     { label: t('nav.playground'), path: '/playground' },

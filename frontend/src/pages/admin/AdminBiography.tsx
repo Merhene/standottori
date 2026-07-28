@@ -53,9 +53,14 @@ function ImageSlot({ label, hint, path, onChange }: ImageSlotProps) {
   );
 }
 
+type BioLocale = 'fr' | 'en';
+
 export default function AdminBiography() {
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
+  const [locale, setLocale] = useState<BioLocale>('fr');
+  const [titleFr, setTitleFr] = useState('');
+  const [titleEn, setTitleEn] = useState('');
+  const [contentFr, setContentFr] = useState('');
+  const [contentEn, setContentEn] = useState('');
   const [photoPath, setPhotoPath] = useState<string | null>(null);
   const [imageTopPath, setImageTopPath] = useState<string | null>(null);
   const [imageBottomPath, setImageBottomPath] = useState<string | null>(null);
@@ -70,11 +75,23 @@ export default function AdminBiography() {
     setCarousel(await listGalleryImages('biography'));
   }, []);
 
+  const textPayload = () => ({
+    title_fr: titleFr,
+    title_en: titleEn,
+    content_fr: contentFr,
+    content_en: contentEn,
+    // Keep legacy columns mirrored to French for older readers / fallbacks
+    title: titleFr,
+    content: contentFr,
+  });
+
   useEffect(() => {
     Promise.all([getBiography(), listGalleryImages('biography')])
       .then(([bio, images]) => {
-        setTitle(bio.title ?? '');
-        setContent(bio.content ?? '');
+        setTitleFr(bio.title_fr ?? bio.title ?? '');
+        setTitleEn(bio.title_en ?? '');
+        setContentFr(bio.content_fr ?? bio.content ?? '');
+        setContentEn(bio.content_en ?? '');
         setPhotoPath(bio.photo_path);
         setImageTopPath(bio.image_top_path);
         setImageBottomPath(bio.image_bottom_path);
@@ -90,8 +107,8 @@ export default function AdminBiography() {
     setIsSaving(true);
     setStatus(null);
     try {
-      await saveBiography({ title, content, photo_path: photoPath });
-      setStatus({ kind: 'success', message: 'Biographie enregistrée.' });
+      await saveBiography({ ...textPayload(), photo_path: photoPath });
+      setStatus({ kind: 'success', message: 'Biographie enregistrée (FR + EN).' });
     } catch (error) {
       setStatus({ kind: 'error', message: `Enregistrement impossible : ${(error as Error).message}` });
     } finally {
@@ -105,12 +122,17 @@ export default function AdminBiography() {
     try {
       const path = await uploadBiographyPhoto(file);
       setPhotoPath(path);
-      await saveBiography({ title, content, photo_path: path });
+      await saveBiography({ ...textPayload(), photo_path: path });
       setStatus({ kind: 'success', message: 'Photo mise à jour.' });
     } catch (error) {
       setStatus({ kind: 'error', message: `Envoi impossible : ${(error as Error).message}` });
     }
   };
+
+  const activeTitle = locale === 'fr' ? titleFr : titleEn;
+  const activeContent = locale === 'fr' ? contentFr : contentEn;
+  const setActiveTitle = locale === 'fr' ? setTitleFr : setTitleEn;
+  const setActiveContent = locale === 'fr' ? setContentFr : setContentEn;
 
   const handleSlotChange = async (slot: 'image_top_path' | 'image_bottom_path', file: File) => {
     setStatus(null);
@@ -198,30 +220,63 @@ export default function AdminBiography() {
       ) : (
         <>
           <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 mb-6">
+            <div className="flex flex-wrap items-center gap-2 mb-4">
+              <span className="text-sm font-semibold mr-1">Langue du texte</span>
+              {([
+                ['fr', 'Français'],
+                ['en', 'English'],
+              ] as const).map(([code, label]) => (
+                <button
+                  key={code}
+                  type="button"
+                  onClick={() => setLocale(code)}
+                  className={
+                    'px-3 py-1.5 text-sm rounded-lg border transition-opacity ' +
+                    (locale === code
+                      ? 'border-[#171617] dark:border-white font-semibold'
+                      : 'border-gray-200 dark:border-gray-700 opacity-70 hover:opacity-100')
+                  }
+                  aria-pressed={locale === code}
+                >
+                  {label}
+                </button>
+              ))}
+              <p className="w-full text-xs opacity-60 mt-1">
+                Les deux langues sont enregistrées ensemble. Si l’anglais est vide, le site affiche le
+                français.
+              </p>
+            </div>
+
             <div className="mb-4">
               <label htmlFor="bio-title" className="block text-sm font-semibold mb-2">
-                Titre
+                Titre ({locale === 'fr' ? 'FR' : 'EN'})
               </label>
               <input
                 id="bio-title"
                 type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                value={activeTitle}
+                onChange={(e) => setActiveTitle(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-transparent"
-                placeholder="Titre de la biographie"
+                placeholder={
+                  locale === 'fr' ? 'Titre de la biographie' : 'Biography title'
+                }
               />
             </div>
 
             <div className="mb-4">
               <label htmlFor="bio-content" className="block text-sm font-semibold mb-2">
-                Contenu
+                Contenu ({locale === 'fr' ? 'FR' : 'EN'})
               </label>
               <textarea
                 id="bio-content"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
+                value={activeContent}
+                onChange={(e) => setActiveContent(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-transparent min-h-64"
-                placeholder="Écrivez la biographie ici..."
+                placeholder={
+                  locale === 'fr'
+                    ? 'Écrivez la biographie ici...'
+                    : 'Write the biography here...'
+                }
                 rows={12}
               />
             </div>

@@ -21,6 +21,7 @@ import {
 } from '../features/contact/templates';
 import { getSiteInfo } from '../lib/content';
 import { supabase, isSupabaseConfigured, publicImageUrl } from '../lib/supabase';
+import type { SiteInfo } from '../lib/types';
 
 type SendState = 'idle' | 'sending' | 'sent' | 'error';
 
@@ -56,7 +57,7 @@ export default function Contact() {
   const [attachments, setAttachments] = useState<AttachmentFile[]>([]);
   const [attachError, setAttachError] = useState<string | null>(null);
   const [flashRequest, setFlashRequest] = useState<FlashRequestPayload | null>(null);
-  const [formUrl, setFormUrl] = useState<string | null>(null);
+  const [siteInfo, setSiteInfo] = useState<SiteInfo | null>(null);
   const [sendState, setSendState] = useState<SendState>('idle');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const flashSeededRef = useRef(false);
@@ -65,13 +66,18 @@ export default function Contact() {
   const budgetLabel = formatBudget(budget, currency);
   const showBudget = category === 'tattoo' || category === 'informations';
   const showBodyMap = category === 'tattoo' || category === 'informations';
+  const formUrl = siteInfo?.form_url?.trim() || null;
 
-  // Load artist form URL
+  const hasStudioDetails = Boolean(
+    siteInfo && (siteInfo.email || siteInfo.phone || siteInfo.address)
+  );
+
+  // Studio details + optional booking form URL (same site_info row)
   useEffect(() => {
     if (!isSupabaseConfigured) return;
     getSiteInfo()
-      .then((info) => setFormUrl(info.form_url?.trim() || null))
-      .catch(() => setFormUrl(null));
+      .then(setSiteInfo)
+      .catch(() => setSiteInfo(null));
   }, []);
 
   // Seed from flash gallery handoff (once per visit)
@@ -255,7 +261,7 @@ export default function Contact() {
   return (
     <div className="max-w-5xl mx-auto">
       <h1 className="text-4xl font-bold mb-2">{t('contact.title')}</h1>
-      <p className="mb-10 opacity-65 max-w-2xl leading-relaxed">
+      <p className="mb-8 opacity-65 max-w-2xl leading-relaxed">
         <Trans
           i18nKey="contact.intro"
           components={{
@@ -486,6 +492,38 @@ export default function Contact() {
             </button>
           </form>
         </div>
+      )}
+
+      {hasStudioDetails && siteInfo && (
+        <section className="border border-light-text/10 dark:border-dark-text/10 rounded-lg p-5 mt-14 max-w-xl">
+          <h2 className="text-sm font-semibold tracking-[0.14em] uppercase opacity-60 mb-3">
+            {t('contact.studio_heading')}
+          </h2>
+          <ul className="flex flex-col gap-2.5 list-none m-0 p-0 text-sm">
+            {siteInfo.email && (
+              <li>
+                <i className="pi pi-envelope mr-2 opacity-60" aria-hidden="true" />
+                <a href={`mailto:${siteInfo.email}`} className="hover:opacity-70 transition-opacity">
+                  {siteInfo.email}
+                </a>
+              </li>
+            )}
+            {siteInfo.phone && (
+              <li>
+                <i className="pi pi-phone mr-2 opacity-60" aria-hidden="true" />
+                <a href={`tel:${siteInfo.phone}`} className="hover:opacity-70 transition-opacity">
+                  {siteInfo.phone}
+                </a>
+              </li>
+            )}
+            {siteInfo.address && (
+              <li className="whitespace-pre-line">
+                <i className="pi pi-map-marker mr-2 opacity-60" aria-hidden="true" />
+                {siteInfo.address}
+              </li>
+            )}
+          </ul>
+        </section>
       )}
     </div>
   );
