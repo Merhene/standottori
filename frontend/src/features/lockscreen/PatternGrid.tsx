@@ -56,6 +56,14 @@ const PatternGrid: React.FC<PatternGridProps> = ({ onPatternSuccess }) => {
   const [isShaking, setIsShaking] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  // Refs mirror state so move/up handlers see the latest values synchronously
+  // (touchmove often fires before React re-renders after pointerdown).
+  const isDrawingRef = useRef(false);
+  const selectedPointsRef = useRef<string[]>([]);
+
+  useEffect(() => {
+    selectedPointsRef.current = selectedPoints;
+  }, [selectedPoints]);
 
   // Finger hint after a few idle seconds; hides on interaction, re-arms
   // whenever the pattern is empty again (e.g. after a reset)
@@ -69,6 +77,8 @@ const PatternGrid: React.FC<PatternGridProps> = ({ onPatternSuccess }) => {
   }, [isDrawing, selectedPoints.length, validationState]);
 
   const resetPattern = () => {
+    isDrawingRef.current = false;
+    selectedPointsRef.current = [];
     setSelectedPoints([]);
     setIsDrawing(false);
     setCurrentPointer(null);
@@ -117,128 +127,129 @@ const PatternGrid: React.FC<PatternGridProps> = ({ onPatternSuccess }) => {
 
   // Check if pointer is over a specific point (with some tolerance)
   const getPointUnderPointer = useCallback((pointerX: number, pointerY: number): string | null => {
-    const tolerance = 8; // Percentage tolerance for point detection
-    
+    // Slightly larger on coarse pointers (fingers) via CSS media is harder here;
+    // 12% of the container ≈ generous finger hit target on phones.
+    const tolerance = 12;
+
     for (const point of POINTS) {
       const dx = Math.abs(pointerX - point.x);
       const dy = Math.abs(pointerY - point.y);
-      
+
       if (dx <= tolerance && dy <= tolerance) {
         return point.id;
       }
     }
-    
+
     return null;
   }, []);
 
   const handlePointInteraction = useCallback((pointId: string) => {
-    setSelectedPoints(prev => {
-      // If no points selected, or this is a new point, add it
+    setSelectedPoints((prev) => {
       if (prev.length === 0) {
+        isDrawingRef.current = true;
         setIsDrawing(true);
-        return [pointId];
+        const next = [pointId];
+        selectedPointsRef.current = next;
+        return next;
       }
 
-      // Check if this point is already selected
       const isAlreadySelected = prev.includes(pointId);
-      
+
       // Allow selecting the first point again to close the loop
       if (isAlreadySelected && pointId === prev[0] && prev.length > 1) {
+        isDrawingRef.current = false;
         setIsDrawing(false);
         setCurrentPointer(null);
         const completedPattern = [...prev, pointId];
-        
-        // Validate the completed pattern
+        selectedPointsRef.current = completedPattern;
+
         setTimeout(() => {
           validatePattern(completedPattern);
-        }, 100); // Small delay to show final line
-        
+        }, 100);
+
         return completedPattern;
       }
 
-      // Don't allow selecting the same point twice (except closing loop)
       if (isAlreadySelected) {
         return prev;
       }
 
-      // Add new point to selection
-      return [...prev, pointId];
+      const next = [...prev, pointId];
+      selectedPointsRef.current = next;
+      return next;
     });
   }, [validatePattern]);
 
-  // Drag-based event handlers
-  const handleDragStart = useCallback((e: React.PointerEvent | React.MouseEvent | React.TouchEvent, pointId: string) => {
-    e.preventDefault();
-    handlePointInteraction(pointId);
-    
-    // Get initial pointer position
-    let clientX: number, clientY: number;
-    if ('clientX' in e) {
-      clientX = e.clientX;
-      clientY = e.clientY;
-    } else if (e.touches && e.touches[0]) {
-      clientX = e.touches[0].clientX;
-      clientY = e.touches[0].clientY;
-    } else {
-      return;
-    }
-    
-    const coords = getContainerCoordinates(clientX, clientY);
-    if (coords) {
-      setCurrentPointer(coords);
-    }
-  }, [handlePointInteraction, getContainerCoordinates]);
+  // Unified Pointer Events (mouse + touch + pen). Capture on the container so
+  // move/up keep firing even when the finger leaves the starting node.
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent, pointId: string) => {
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      e.preventDefault();
+      e.stopPropagation();
 
-  const handleDragMove = useCallback((e: React.PointerEvent | React.MouseEvent | React.TouchEvent) => {
-    if (!isDrawing) return;
-    
-    e.preventDefault();
-    
-    // Get current pointer position
-    let clientX: number, clientY: number;
-    if ('clientX' in e) {
-      clientX = e.clientX;
-      clientY = e.clientY;
-    } else if (e.touches && e.touches[0]) {
-      clientX = e.touches[0].clientX;
-      clientY = e.touches[0].clientY;
-    } else {
-      return;
-    }
-    
-    const coords = getContainerCoordinates(clientX, clientY);
-    if (!coords) return;
-    
-    setCurrentPointer(coords);
-    
-    // Check if we're over a new point
-    const pointUnder = getPointUnderPointer(coords.x, coords.y);
-    if (pointUnder) {
-      handlePointInteraction(pointUnder);
-    }
-  }, [isDrawing, getContainerCoordinates, getPointUnderPointer, handlePointInteraction]);
-
-  const handleDragEnd = useCallback((e: React.PointerEvent | React.MouseEvent | React.TouchEvent) => {
-    if (!isDrawing) return;
-    
-    e.preventDefault();
-    setIsDrawing(false);
-    setCurrentPointer(null);
-    
-    // If pattern has points but is not closed (doesn't end with starting point), validate it
-    setTimeout(() => {
-      if (selectedPoints.length > 0) {
-        const lastPoint = selectedPoints[selectedPoints.length - 1];
-        const firstPoint = selectedPoints[0];
-        
-        // If pattern is not closed but has multiple points, it's likely incomplete
-        if (selectedPoints.length > 1 && lastPoint !== firstPoint) {
-          // Auto-validate incomplete patterns as incorrect
-          validatePattern(selectedPoints);
-        }
+      try {
+        containerRef.current?.setPointerCapture(e.pointerId);
+      } catch {
+        // Older browsers may reject capture; move still works while over the container
       }
-    }, 100);
-  }, [isDrawing, selectedPoints, validatePattern]);
+
+      isDrawingRef.current = true;
+      setIsDrawing(true);
+      handlePointInteraction(pointId);
+
+      const coords = getContainerCoordinates(e.clientX, e.clientY);
+      if (coords) setCurrentPointer(coords);
+    },
+    [handlePointInteraction, getContainerCoordinates]
+  );
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      if (!isDrawingRef.current) return;
+      e.preventDefault();
+
+      const coords = getContainerCoordinates(e.clientX, e.clientY);
+      if (!coords) return;
+
+      setCurrentPointer(coords);
+
+      const pointUnder = getPointUnderPointer(coords.x, coords.y);
+      if (pointUnder) handlePointInteraction(pointUnder);
+    },
+    [getContainerCoordinates, getPointUnderPointer, handlePointInteraction]
+  );
+
+  const handlePointerUp = useCallback(
+    (e: React.PointerEvent) => {
+      if (!isDrawingRef.current) return;
+      e.preventDefault();
+
+      try {
+        if (containerRef.current?.hasPointerCapture(e.pointerId)) {
+          containerRef.current.releasePointerCapture(e.pointerId);
+        }
+      } catch {
+        // ignore
+      }
+
+      isDrawingRef.current = false;
+      setIsDrawing(false);
+      setCurrentPointer(null);
+
+      const pattern = selectedPointsRef.current;
+      window.setTimeout(() => {
+        if (pattern.length > 1) {
+          const lastPoint = pattern[pattern.length - 1];
+          const firstPoint = pattern[0];
+          if (lastPoint !== firstPoint) {
+            validatePattern(pattern);
+          }
+        }
+      }, 100);
+    },
+    [validatePattern]
+  );
 
   // Get coordinates for a point by ID
   const getPointById = (id: string): Point | undefined => {
@@ -332,15 +343,12 @@ const PatternGrid: React.FC<PatternGridProps> = ({ onPatternSuccess }) => {
 
   return (
     <div className="full-screen">
-      <div 
+      <div
         className={`pattern-container ${validationState} ${isShaking ? 'shake' : ''}`}
         ref={containerRef}
-        onPointerMove={handleDragMove}
-        onPointerUp={handleDragEnd}
-        onMouseMove={handleDragMove}
-        onMouseUp={handleDragEnd}
-        onTouchMove={handleDragMove}
-        onTouchEnd={handleDragEnd}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
       >
         {/* SVG overlay for drawing lines */}
         <svg
@@ -376,13 +384,12 @@ const PatternGrid: React.FC<PatternGridProps> = ({ onPatternSuccess }) => {
               key={point.id}
               className={`pattern-point pattern-point--${point.id} ${isSelected ? 'selected' : ''} ${canCloseLoop ? 'can-close' : ''}`}
               data-id={point.id}
-              onPointerDown={(e) => handleDragStart(e, point.id)}
-              onMouseDown={(e) => handleDragStart(e, point.id)}
-              onTouchStart={(e) => handleDragStart(e, point.id)}
+              onPointerDown={(e) => handlePointerDown(e, point.id)}
               style={{
                 top: `${point.y}%`,
                 left: `${point.x}%`,
                 cursor: 'pointer',
+                touchAction: 'none',
                 // Each node ignites the moment the energy head reaches it
                 ...(ignitionDelays && point.id in ignitionDelays
                   ? { '--ignite-delay': `${Math.round(ignitionDelays[point.id] * ENERGY_FILL_MS)}ms` }
