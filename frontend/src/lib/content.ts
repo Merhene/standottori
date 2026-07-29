@@ -3,6 +3,7 @@ import { compressImage, fileExtension } from './imageUtils';
 import type {
   Biography,
   GalleryCategory,
+  GalleryCoverSlot,
   GalleryImage,
   SiteEvent,
   SiteInfo,
@@ -30,7 +31,11 @@ export async function listGalleryImages(category: GalleryCategory): Promise<Gall
   return data ?? [];
 }
 
-export async function uploadGalleryImage(category: GalleryCategory, file: File): Promise<void> {
+export async function uploadGalleryImage(
+  category: GalleryCategory,
+  file: File,
+  options?: { title?: string }
+): Promise<void> {
   const client = requireClient();
   const blob = await compressImage(file);
   const path = `${category}/${crypto.randomUUID()}.${fileExtension(blob.type || file.type)}`;
@@ -43,7 +48,7 @@ export async function uploadGalleryImage(category: GalleryCategory, file: File):
   const { error: insertError } = await client.from('gallery_images').insert({
     category,
     storage_path: path,
-    title: file.name.replace(/\.[^.]+$/, ''),
+    title: options?.title ?? file.name.replace(/\.[^.]+$/, ''),
   });
   if (insertError) {
     // Avoid orphan files if the metadata insert fails
@@ -57,6 +62,13 @@ export async function deleteGalleryImage(image: GalleryImage): Promise<void> {
   const { error } = await client.from('gallery_images').delete().eq('id', image.id);
   if (error) throw new Error(error.message);
   await client.storage.from(GALLERY_BUCKET).remove([image.storage_path]);
+}
+
+/** Replace the Book or Flash panel image on the /gallery hub. */
+export async function replaceGalleryCover(slot: GalleryCoverSlot, file: File): Promise<void> {
+  const existing = (await listGalleryImages('cover')).filter((img) => img.title === slot);
+  await uploadGalleryImage('cover', file, { title: slot });
+  await Promise.all(existing.map((img) => deleteGalleryImage(img)));
 }
 
 // ============================================================

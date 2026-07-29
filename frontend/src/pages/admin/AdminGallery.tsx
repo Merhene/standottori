@@ -32,6 +32,13 @@ const CATEGORIES: {
     path: '/admin/gallery/wallpaper',
     category: 'wallpaper',
   },
+  {
+    icon: 'pi-th-large',
+    title: 'Cover',
+    description: 'Images des panneaux Book et Flash sur /gallery.',
+    path: '/admin/gallery/cover',
+    category: 'cover',
+  },
 ];
 
 export default function AdminGallery() {

@@ -59,11 +59,13 @@ export default function SiteFooter() {
   }, [socials]);
 
   return (
-    <footer
-      ref={footerRef}
-      className="relative z-20 border-t border-light-text/10 dark:border-dark-text/10"
-    >
-      <div className="container mx-auto px-4 py-6 text-sm flex flex-col items-center gap-4">
+    <footer ref={footerRef} className="relative z-20">
+      {/* Thin veil: 90% → 10% so socials stay readable over fullscreen pages */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -top-8 bg-gradient-to-t from-light-bg/90 via-light-bg/40 to-light-bg/10 dark:from-dark-bg/90 dark:via-dark-bg/40 dark:to-dark-bg/10"
+      />
+      <div className="relative container mx-auto px-4 py-6 text-sm flex flex-col items-center gap-4">
         {socials.length > 0 && (
           <ul className="flex flex-wrap justify-center gap-5 list-none m-0 p-0" aria-label={t('footer.socials')}>
             {socials.map((social) => (
@@ -72,7 +74,7 @@ export default function SiteFooter() {
                   href={social.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 opacity-70 hover:opacity-100 transition-opacity"
+                  className="inline-flex items-center gap-2 opacity-90 hover:opacity-100 transition-opacity"
                 >
                   <i className={`pi ${social.icon}`} aria-hidden="true" />
                   <span>{social.label}</span>
@@ -81,7 +83,7 @@ export default function SiteFooter() {
             ))}
           </ul>
         )}
-        <p className="text-center m-0 opacity-70">
+        <p className="text-center m-0 opacity-60">
           &copy; {new Date().getFullYear()} Stan Dottori. {t('footer.rights')}
         </p>
       </div>

@@ -347,17 +347,22 @@
 }
 
 .dark .pattern-stage--reveal .pattern-point.selected::after {
-  background-color: #ff2ec8;
+  background-color: #ffffff;
   animation: pointFlare 0.7s ease-in forwards;
 }
 
 @keyframes pointFlare {
+  from {
+    background-color: #ffffff;
+    opacity: 1;
+  }
   to {
+    background-color: #ffffff;
     transform: scale(1.9);
+    opacity: 0;
     box-shadow:
       0 0 14px rgba(255, 255, 255, 0.95),
-      0 0 34px rgba(255, 46, 200, 1),
-      0 0 70px rgba(255, 0, 170, 0.8);
+      0 0 28px rgba(255, 255, 255, 0.45);
   }
 }
 
@@ -381,23 +386,24 @@
   animation-delay: var(--ignite-delay, 0ms);
 }
 
+/* Keep selected dots white through the reveal — never shift to magenta. */
 @keyframes pointIgnite {
   0% {
     background-color: #ffffff;
     box-shadow: none;
+    opacity: 1;
   }
   40% {
     background-color: #ffffff;
     box-shadow:
       0 0 12px rgba(255, 255, 255, 0.95),
-      0 0 30px rgba(255, 46, 200, 0.9);
+      0 0 28px rgba(255, 255, 255, 0.55);
+    opacity: 1;
   }
   100% {
-    background-color: #ff2ec8;
-    box-shadow:
-      0 0 8px rgba(255, 255, 255, 0.8),
-      0 0 20px rgba(255, 46, 200, 0.95),
-      0 0 44px rgba(255, 0, 170, 0.65);
+    background-color: #ffffff;
+    box-shadow: none;
+    opacity: 0;
   }
 }
 
@@ -598,6 +604,7 @@
   }
 
   .dark .pattern-container.success .pattern-point.selected::after {
-    background-color: #ff2ec8;
+    background-color: #ffffff;
+    opacity: 0;
   }
 }

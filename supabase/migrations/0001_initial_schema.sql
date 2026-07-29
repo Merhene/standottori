@@ -8,7 +8,7 @@
 
 create table if not exists public.gallery_images (
   id uuid primary key default gen_random_uuid(),
-  category text not null check (category in ('tattoo', 'flash', 'wallpaper', 'biography')),
+  category text not null check (category in ('tattoo', 'flash', 'wallpaper', 'biography', 'cover')),
   storage_path text not null unique,
   title text,
   sort_order integer not null default 0,
@@ -111,7 +111,7 @@ alter table public.gallery_images
 
 alter table public.gallery_images
   add constraint gallery_images_category_check
-  check (category in ('tattoo', 'flash', 'wallpaper', 'biography'));
+  check (category in ('tattoo', 'flash', 'wallpaper', 'biography', 'cover'));
 
 -- Seed the single-row tables
 insert into public.biography (id) values (1) on conflict (id) do nothing;

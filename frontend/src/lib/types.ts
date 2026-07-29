@@ -1,4 +1,7 @@
-export type GalleryCategory = 'tattoo' | 'flash' | 'wallpaper' | 'biography';
+export type GalleryCategory = 'tattoo' | 'flash' | 'wallpaper' | 'biography' | 'cover';
+
+/** Fixed slots for the /gallery hub panels */
+export type GalleryCoverSlot = 'book' | 'flash';
 
 export interface GalleryImage {
   id: string;
