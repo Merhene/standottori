@@ -69,8 +69,13 @@ export default function PrimeHeader({
     { label: t('nav.gallery'), path: '/gallery' },
     { label: t('nav.contact'), path: '/contact' },
     { label: t('nav.youtube'), path: '/youtube' },
-    // Sandbox — only when logged in as admin
-    ...(session ? [{ label: t('nav.playground'), path: '/playground' }] : []),
+    // Admin tools — only when logged in
+    ...(session
+      ? [
+          { label: t('nav.playground'), path: '/playground' },
+          { label: t('nav.admin'), path: '/admin' },
+        ]
+      : []),
   ];
 
   const handleNavClick = (path: string) => {

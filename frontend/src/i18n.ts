@@ -28,6 +28,7 @@ const resources = {
         contact: 'Contact',
         youtube: 'YouTube',
         playground: 'Playground',
+        admin: 'Admin',
         menu: 'Menu',
         open_menu: 'Ouvrir le menu',
         close_menu: 'Fermer le menu'
@@ -210,6 +211,7 @@ const resources = {
         contact: 'Contact',
         youtube: 'YouTube',
         playground: 'Playground',
+        admin: 'Admin',
         menu: 'Menu',
         open_menu: 'Open menu',
         close_menu: 'Close menu'

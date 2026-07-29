@@ -1,6 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { listGalleryImages } from '../lib/content';
+import { isSupabaseConfigured, publicImageUrl } from '../lib/supabase';
 import './Gallery.css';
+
+/** Used until Cover images are uploaded in admin */
+const FALLBACK_COVERS = {
+  book: '/images/back-tattoo.jpg',
+  flash: '/images/tattoo_ex3.jpg',
+} as const;
 
 interface GallerySectionProps {
   image: string;
@@ -110,6 +118,23 @@ function ExpandLayer({ payload, onDone }: ExpandLayerProps) {
 export default function Gallery() {
   const navigate = useNavigate();
   const [expand, setExpand] = useState<ExpandPayload | null>(null);
+  const [covers, setCovers] = useState<{ book: string; flash: string }>({ ...FALLBACK_COVERS });
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    listGalleryImages('cover')
+      .then((images) => {
+        const book = images.find((img) => img.title === 'book');
+        const flash = images.find((img) => img.title === 'flash');
+        setCovers({
+          book: book ? publicImageUrl(book.storage_path) : FALLBACK_COVERS.book,
+          flash: flash ? publicImageUrl(flash.storage_path) : FALLBACK_COVERS.flash,
+        });
+      })
+      .catch(() => {
+        // Keep static fallbacks
+      });
+  }, []);
 
   const handleSelect = (payload: ExpandPayload) => {
     if (expand) return;
@@ -130,14 +155,14 @@ export default function Gallery() {
   return (
     <div className={`gallery-hub ${expand ? 'is-expanding' : ''}`}>
       <GallerySection
-        image="/images/back-tattoo.jpg"
+        image={covers.book}
         title="Book"
         link="/gallery/book"
         onSelect={handleSelect}
         dismissed={!!expand && expand.link !== '/gallery/book'}
       />
       <GallerySection
-        image="/images/tattoo_ex3.jpg"
+        image={covers.flash}
         title="Flash"
         link="/gallery/flash"
         onSelect={handleSelect}

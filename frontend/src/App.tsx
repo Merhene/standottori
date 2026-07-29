@@ -31,6 +31,7 @@ const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
 const AdminGalleryTattoo = lazy(() => import('./pages/admin/gallery/AdminGalleryTattoo'));
 const AdminGalleryFlash = lazy(() => import('./pages/admin/gallery/AdminGalleryFlash'));
 const AdminGalleryWallpaper = lazy(() => import('./pages/admin/gallery/AdminGalleryWallpaper'));
+const AdminGalleryCover = lazy(() => import('./pages/admin/gallery/AdminGalleryCover'));
 
 const STORAGE_KEY = 'lockscreen-completed';
 
@@ -52,12 +53,19 @@ function App() {
   // The overlay stays mounted during its fade-out, then unmounts entirely
   const [overlayGone, setOverlayGone] = useState<boolean>(unlocked);
 
+  const dismissLockscreen = () => {
+    // Always persist — pattern success AND timeout both count as completed
+    localStorage.setItem(STORAGE_KEY, '1');
+    setUnlocked(true);
+    window.setTimeout(() => setOverlayGone(true), OVERLAY_FADE_MS);
+  };
+
   // The artist can disable the lock screen from the admin settings
   useEffect(() => {
     if (unlocked || !isSupabaseConfigured) return;
     getSiteSettings()
       .then((settings) => {
-        if (!settings.lockscreen_enabled) dismissLockscreen(false);
+        if (!settings.lockscreen_enabled) dismissLockscreen();
       })
       .catch(() => {
         // Settings unavailable: keep the lock screen (default behaviour)
@@ -65,19 +73,15 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unlocked]);
 
-  const dismissLockscreen = (remember: boolean) => {
-    if (remember) localStorage.setItem(STORAGE_KEY, '1');
-    setUnlocked(true);
-    window.setTimeout(() => setOverlayGone(true), OVERLAY_FADE_MS);
-  };
-
-  // Timeout: visitors who don't play the pattern still reach the site.
-  // Not remembered, so they get another chance at the pattern next visit.
+  // Auto-dismiss after idle: same persistence as a successful pattern
   useEffect(() => {
     if (unlocked) return;
-    const id = window.setTimeout(() => dismissLockscreen(false), LOCKSCREEN_TIMEOUT_MS);
+    const id = window.setTimeout(() => {
+      localStorage.setItem(STORAGE_KEY, '1');
+      setUnlocked(true);
+      window.setTimeout(() => setOverlayGone(true), OVERLAY_FADE_MS);
+    }, LOCKSCREEN_TIMEOUT_MS);
     return () => window.clearTimeout(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unlocked]);
 
   return (
@@ -115,6 +119,7 @@ function App() {
                       <Route path="admin/gallery/tattoo" element={<AdminGalleryTattoo />} />
                       <Route path="admin/gallery/flash" element={<AdminGalleryFlash />} />
                       <Route path="admin/gallery/wallpaper" element={<AdminGalleryWallpaper />} />
+                      <Route path="admin/gallery/cover" element={<AdminGalleryCover />} />
                       <Route path="admin/biography" element={<AdminBiography />} />
                       <Route path="admin/info" element={<AdminInfo />} />
                       <Route path="admin/settings" element={<AdminSettings />} />
@@ -139,7 +144,7 @@ function App() {
               pointerEvents: unlocked ? 'none' : 'auto',
             }}
           >
-            <LockScreen onComplete={() => dismissLockscreen(true)} />
+            <LockScreen onComplete={dismissLockscreen} />
           </div>
         )}
         </UnlockContext.Provider>
