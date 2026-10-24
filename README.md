@@ -37,7 +37,12 @@ Without Supabase credentials the site runs in a degraded mode: static fallback i
 
 ## Events map
 
-`/events` uses **MapLibre GL** + CARTO basemap tiles (no API key). Pins use
+`/events` uses **MapLibre GL JS** with **MapTiler Cloud** styles
+(`streets-v4-dark` / `streets-v4`). Set `VITE_MAPTILER_API_KEY` in
+`frontend/.env.local` and in Vercel (Production + Preview). Create a browser key
+at [MapTiler Cloud](https://cloud.maptiler.com/account/keys/) and restrict it by
+HTTP referrer (`localhost`, `standottori.com`, Vercel previews). Confirm MapTiler
+commercial / free-tier terms before production traffic. Pins use
 `events.latitude` / `events.longitude` (included in `0001_initial_schema.sql`).
 Set a place via city search in **Admin → Événements**.
 

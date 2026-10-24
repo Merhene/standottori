@@ -3,6 +3,8 @@
 interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL?: string;
   readonly VITE_SUPABASE_ANON_KEY?: string;
+  /** MapTiler Cloud browser API key for the public Events map. */
+  readonly VITE_MAPTILER_API_KEY?: string;
 }
 
 interface ImportMeta {
