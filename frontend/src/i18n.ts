@@ -60,7 +60,15 @@ const resources = {
         filter_empty: 'Aucun événement dans ce filtre.',
         map_empty: 'Aucun événement géolocalisé pour l’instant. Ajoutez un lieu depuis l’admin.',
         map_close: 'Fermer la fiche',
-        not_on_map: 'pas sur la carte'
+        map_region_label:
+          'Carte des événements. Sélectionnez un événement dans la liste pour le focus clavier.',
+        not_on_map: 'pas sur la carte',
+        map_error_missing_key:
+          'Carte indisponible : configurez VITE_MAPTILER_API_KEY (clé MapTiler navigateur).',
+        map_error_webgl: 'Carte indisponible : WebGL n’est pas supporté sur cet appareil.',
+        map_error_style:
+          'Impossible de charger le fond de carte MapTiler (clé invalide ou restreinte).',
+        map_error_tiles: 'Le fond de carte ne charge pas correctement. Réessayez plus tard.'
       },
       gallery: {
         title: 'Galerie',
@@ -243,7 +251,15 @@ const resources = {
         filter_empty: 'No events in this filter.',
         map_empty: 'No geolocated events yet. Add a place from the admin.',
         map_close: 'Close details',
-        not_on_map: 'not on map'
+        map_region_label:
+          'Events map. Use the event list below for keyboard selection and focus.',
+        not_on_map: 'not on map',
+        map_error_missing_key:
+          'Map unavailable: set VITE_MAPTILER_API_KEY (MapTiler browser API key).',
+        map_error_webgl: 'Map unavailable: WebGL is not supported on this device.',
+        map_error_style:
+          'Could not load the MapTiler basemap (invalid or restricted API key).',
+        map_error_tiles: 'The basemap is not loading correctly. Try again later.'
       },
       gallery: {
         title: 'Gallery',

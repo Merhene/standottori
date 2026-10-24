@@ -8,4 +8,8 @@ export default defineConfig({
     host: '0.0.0.0', // Expose sur le réseau local
     port: 5173,
   },
+  optimizeDeps: {
+    // MapLibre v6 worker fails Vite dep pre-bundling → blank map / no MVT requests.
+    exclude: ['maplibre-gl'],
+  },
 })
